@@ -1,0 +1,4 @@
+-r requirements.txt
+geopandas>=1,<2
+pyproj>=3.6,<4
+pyshp>=2.3,<4
