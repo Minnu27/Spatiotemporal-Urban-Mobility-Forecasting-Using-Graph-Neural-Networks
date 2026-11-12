@@ -1,0 +1,15 @@
+.git
+.next
+node_modules
+.env*
+!.env.example
+ml
+scripts
+tests
+docs
+*.ipynb
+*.docx
+playwright.config.ts
+playwright-report
+test-results
+artifacts

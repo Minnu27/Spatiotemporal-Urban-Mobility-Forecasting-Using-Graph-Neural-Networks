@@ -2,7 +2,7 @@ import GtfsRealtimeBindings from 'gtfs-realtime-bindings';
 import { fetchBounded } from './http';
 export type Arrival={route:string;stopId:string;at:string;direction:string;tripId:string};
 export type ArrivalResult={state:'live'|'partial'|'unavailable';arrivals:Arrival[];fetchedAt:string;feedTimes:string[];message:string};
-const groups:Record<string,string[]>={gtfs:['1','2','3','4','5','6','S'], 'gtfs-ace':['A','C','E'], 'gtfs-bdfm':['B','D','F','M'], 'gtfs-g':['G'], 'gtfs-jz':['J','Z'], 'gtfs-l':['L'], 'gtfs-nqrw':['N','Q','R','W'], 'gtfs-7':['7'], 'gtfs-si':['SI']};
+const groups:Record<string,string[]>={gtfs:['1','2','3','4','5','6','7','S'], 'gtfs-ace':['A','C','E'], 'gtfs-bdfm':['B','D','F','M'], 'gtfs-g':['G'], 'gtfs-jz':['J','Z'], 'gtfs-l':['L'], 'gtfs-nqrw':['N','Q','R','W'], 'gtfs-si':['SI']};
 export function parseArrivals(bytes:Uint8Array,station:string,now:number):{arrivals:Arrival[];feedTime:string} {
  const feed=GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(bytes);
  const stamp=Number(feed.header.timestamp)*1000;

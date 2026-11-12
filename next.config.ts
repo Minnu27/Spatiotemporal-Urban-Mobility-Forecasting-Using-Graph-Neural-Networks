@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 const config: NextConfig = {
   poweredByHeader: false,
+  outputFileTracingExcludes: { '/*': ['./.env*'] },
   serverExternalPackages: ['gtfs-realtime-bindings'],
   async headers() { return [{ source: '/:path*', headers: [
     {key:'X-Content-Type-Options',value:'nosniff'},

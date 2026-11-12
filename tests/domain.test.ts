@@ -10,11 +10,11 @@ const now='2026-11-11T18:00:00Z';
 test('MTA includes only alerts active now, and only subway routes',()=>{
  const seconds=Date.parse(now)/1000;
  const entity=(id:string,start:number,end:number,route:string)=>({id,alert:{activePeriod:[{start,end}],headerText:{translation:[{text:`Alert ${id}`,language:'en'}]},informedEntity:[{routeId:route}],effect:1}});
- const bytes=GtfsRealtimeBindings.transit_realtime.FeedMessage.encode({header:{gtfsRealtimeVersion:'2.0'},entity:[entity('active',seconds-60,seconds+60,'A'),entity('future',seconds+60,seconds+120,'A'),entity('past',seconds-120,seconds-1,'A'),entity('bus',seconds-60,seconds+60,'M15')]}).finish();
+ const bytes=GtfsRealtimeBindings.transit_realtime.FeedMessage.encode({header:{gtfsRealtimeVersion:'2.0',timestamp:Date.parse(now)/1000},entity:[entity('active',seconds-60,seconds+60,'A'),entity('future',seconds+60,seconds+120,'A'),entity('past',seconds-120,seconds-1,'A'),entity('bus',seconds-60,seconds+60,'M15')]}).finish();
  const result=normalizeMta(bytes,now);assert.equal(result.length,1);assert.equal(result[0].id,'mta:active');assert.equal(result[0].severity,'high');assert.equal(result[0].latitude,null);
 });
 test('MTA handles missing start/end and multiple active periods',()=>{
- const bytes=GtfsRealtimeBindings.transit_realtime.FeedMessage.encode({header:{gtfsRealtimeVersion:'2.0'},entity:[{id:'open',alert:{informedEntity:[{routeId:'1'}],headerText:{translation:[{text:'<b>Service change</b>'}]}}}]}).finish();
+ const bytes=GtfsRealtimeBindings.transit_realtime.FeedMessage.encode({header:{gtfsRealtimeVersion:'2.0',timestamp:Date.parse(now)/1000},entity:[{id:'open',alert:{informedEntity:[{routeId:'1'}],headerText:{translation:[{text:'<b>Service change</b>'}]}}}]}).finish();
  assert.equal(normalizeMta(bytes,now)[0].title,'Service change');
 });
 test('road feed retains permit qualification and local dates',()=>{

@@ -31,6 +31,8 @@ export function normalizeMta(bytes: Uint8Array, now: string): Incident[] {
   const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(bytes);
   const text = (v: {translation?: readonly {text?: string | null}[] | null} | null | undefined) => (v?.translation?.find(t => t.text)?.text ?? '').replace(/<[^>]*>/g, '').slice(0,3000);
   const epoch = Date.parse(now)/1000;
+  const published=Number(feed.header.timestamp);
+  if (!published || epoch-published>6*3600 || published>epoch+60) throw new Error('Stale or future-dated MTA alert feed');
   return (feed.entity ?? []).flatMap(entity => {
     const a = entity.alert; if (!a) return [];
     const periods = a.activePeriod ?? [];
@@ -54,9 +56,10 @@ export async function getAlerts(force = false): Promise<AlertResult> {
   // NYC local date, not the server's UTC date, for local permit dates.
   const day = new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
   const query = new URLSearchParams({'$where':`work_start_date <= '${day}T23:59:59' AND work_end_date >= '${day}T00:00:00'`,'$limit':'300','$order':'work_start_date DESC'});
+  let mtaPublishedAt: string | undefined;
   const sources = [
     {source:'NYC DOT', run:async()=>normalizeRoads(await fetchJson(`${NYC}?${query}`),now)},
-    {source:'MTA', run:async()=>normalizeMta(await fetchBounded(MTA,{},5_000_000),now)},
+    {source:'MTA', run:async()=> { const bytes=await fetchBounded(MTA,{},5_000_000); const feed=GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(bytes); const result=normalizeMta(bytes,now); mtaPublishedAt=new Date(Number(feed.header.timestamp)*1000).toISOString(); return result; }},
     {source:'Citizen', run:async()=> {
       if (!process.env.CITIZEN_FEED_URL) return null;
       return normalizeCitizen(await fetchJson(serverUrl(process.env.CITIZEN_FEED_URL), {headers:process.env.CITIZEN_API_KEY ? {Authorization:`Bearer ${process.env.CITIZEN_API_KEY}`} : {}}),now)
@@ -67,7 +70,7 @@ export async function getAlerts(force = false): Promise<AlertResult> {
   const incidents: Incident[] = []; const feeds: FeedStatus[] = [];
   results.forEach((r,i)=> {
     const source=sources[i].source;
-    if (r.status==='fulfilled' && r.value !== null) { incidents.push(...r.value); feeds.push({source,state:'live',detail:source==='NYC DOT'?'Active planned work permits; up to 300 records.':'Current service reports.',fetchedAt:now}); }
+    if (r.status==='fulfilled' && r.value !== null) { incidents.push(...r.value); feeds.push({source,state:'live',detail:source==='NYC DOT'?'Active planned work permits; up to 300 records.':`Active reports. Feed generated ${mtaPublishedAt ?? 'unknown'}.`,fetchedAt:now}); }
     else feeds.push({source,state:r.status==='fulfilled'?'not_configured':'unavailable',detail:r.status==='fulfilled'?'Authorized feed endpoint required.':'Source could not be reached or parsed. Retry later.',fetchedAt:now});
   });
   const unique=[...new Map(incidents.map(v=>[v.id,v])).values()];
