@@ -1,0 +1,51 @@
+[
+  {
+    "id": "project",
+    "title": "Forecasting scope",
+    "text": "NYC urban mobility forecasting covers 263 TLC taxi zones, including EWR. The original notebook uses 12 hours of inputs and forecasts 1, 3 and 6 hours ahead. Demand is taxi pickups per zone-hour, not cab availability, fare, passenger wait time or road closure probability. A longer recursive forecast is a scenario and lacks the validation of the direct horizons.",
+    "kind": "methodology",
+    "url": "https://github.com/Minnu27/Spatiotemporal-Urban-Mobility-Forecasting-Using-Graph-Neural-Networks"
+  },
+  {
+    "id": "validation",
+    "title": "Research accuracy and limitations",
+    "text": "Saved November\u2013December 2025 notebook results: spatial LightGBM MAE 3.528, 4.368, 4.716 at 1,3,6 hours. Correlation GCN-GRU MAE 4.086,4.730,5.031. No-graph GRU MAE 4.523,5.088,5.570. These are saved outputs, not independently reproduced. Full-year gap imputation used future statistics, so historical scores require a corrected rerun. Never claim that GNN beats LightGBM or that these scores measure current live accuracy.",
+    "kind": "research",
+    "url": "https://github.com/Minnu27/Spatiotemporal-Urban-Mobility-Forecasting-Using-Graph-Neural-Networks"
+  },
+  {
+    "id": "graphs",
+    "title": "Graph structure and weights",
+    "text": "Four graphs: buffered polygon contiguity with nearest-neighbor island bridges, 8-neighbor Gaussian distance, training-only origin-destination flow, and training-only residual correlation. Saved graph counts: contiguity 672 edges; distance 1254; OD 2308 with 2 isolated zones; correlation 2413 with 3 isolated zones. Graph edges do not necessarily represent drivable roads. Learned weights represent statistical dependence, not causation. The new artifact audit checks symmetry, diagonal, nonnegative finite weights, connected components and node ordering.",
+    "kind": "methodology",
+    "url": "https://github.com/Minnu27/Spatiotemporal-Urban-Mobility-Forecasting-Using-Graph-Neural-Networks"
+  },
+  {
+    "id": "closures",
+    "title": "Road construction information",
+    "text": "NYC DOT Street Closures due to Construction Activities by Block is a planned-work permit feed. Dates and geometry identify reported construction activity, not proof that every lane is currently closed. Only active date intervals are requested. Feed failure means unavailable information, not no closures. Source records may change and may not cover unplanned incidents.",
+    "kind": "source",
+    "url": "https://data.cityofnewyork.us/Transportation/i6b5-j7bu"
+  },
+  {
+    "id": "subway",
+    "title": "MTA subway alerts and timing",
+    "text": "MTA GTFS-realtime service alerts are filtered by active periods. The Disruptions tab also retrieves official MTA trip updates for a selected station, filters skipped stops and canceled trips, rejects feeds older than five minutes, and shows arrival predictions over the next hour in New York time. Arrival predictions are not guaranteed. Missing data does not establish no service. Train feeds refresh every 30 seconds. Neither arrivals nor alerts establish taxi fares or surge pricing.",
+    "kind": "source",
+    "url": "https://www.mta.info/alerts"
+  },
+  {
+    "id": "impact",
+    "title": "Disruption impact scenarios",
+    "text": "The zone disruption score combines geolocated reports within 2.5 km with severity weights and exponential distance decay. It is an uncalibrated heuristic, not a closure prediction probability, observed taxi demand, surge price, verified road routing or trained GNN forecast. Subway alerts without locations remain network notices and do not get assigned fabricated coordinates. Future closure forecasting needs historical incident labels and time-based evaluation.",
+    "kind": "methodology",
+    "url": "https://data.cityofnewyork.us/"
+  },
+  {
+    "id": "fares",
+    "title": "NYC yellow taxi prices",
+    "text": "TLC standard metered yellow taxi fare: $3 initial, $0.70 per fifth of a mile above 12 mph OR per 60 seconds slow/stopped, $0.50 state surcharge, $1 improvement surcharge, $1 overnight 8pm\u20136am, $2.50 weekday 4pm\u20138pm excluding holidays. Manhattan south of 96th: $2.50; applicable Congestion Relief Zone south of and including 60th: $0.75. Add tolls/tips. Airport and out-of-city rules differ. The dashboard estimator excludes these special trips. Uber/Lyft/e-hail prices require provider quotes and cannot be inferred accurately from subway alerts.",
+    "kind": "fare",
+    "url": "https://www.nyc.gov/site/tlc/passengers/taxi-fare.page"
+  }
+]

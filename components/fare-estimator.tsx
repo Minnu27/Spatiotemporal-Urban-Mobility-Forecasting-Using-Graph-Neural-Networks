@@ -1,0 +1,12 @@
+'use client';
+import { useState } from 'react';
+import { ArrowUpRight, Info } from 'lucide-react';
+import { estimateFare } from '@/lib/fares';
+export default function FareEstimator(){
+ const [miles,setMiles]=useState(3);const [slow,setSlow]=useState(5);const [hour,setHour]=useState(17);const [weekday,setWeekday]=useState(true);const [holiday,setHoliday]=useState(false);const [south96,setSouth96]=useState(true);const [south60,setSouth60]=useState(true);
+ const fare=estimateFare({milesAbove12mph:miles,slowMinutes:slow,localHour:hour,weekday,holiday,south96,south60,tolls:0});
+ return <section className="panel fare-panel"><div className="panel-heading"><div><span className="eyebrow">PLAN YOUR JOURNEY</span><h2>Yellow taxi fare estimator</h2><p>Published meter rates. Transparent assumptions.</p></div><span className="taxi-icon">T</span></div>
+ <div className="fare-layout"><div className="fare-fields"><label>Distance above 12 mph <span>{miles.toFixed(1)} mi</span><input aria-label="Distance above 12 mph" type="range" min="0" max="20" step="0.2" value={miles} onChange={e=>setMiles(+e.target.value)}/></label><label>Slow / stopped travel <span>{slow} min</span><input aria-label="Slow or stopped minutes" type="range" min="0" max="60" value={slow} onChange={e=>setSlow(+e.target.value)}/></label><label>Departure hour (New York)<select value={hour} onChange={e=>setHour(+e.target.value)}>{Array.from({length:24},(_,i)=><option key={i} value={i}>{String(i).padStart(2,'0')}:00</option>)}</select></label><div className="fare-options">{[['Weekday',weekday,setWeekday],['Legal holiday',holiday,setHoliday],['Passes south of 96th St',south96,setSouth96],['Enters Congestion Relief Zone',south60,setSouth60]].map(([label,value,setter])=><label key={String(label)}><input type="checkbox" checked={value as boolean} onChange={e=>(setter as (v:boolean)=>void)(e.target.checked)}/>{label as string}</label>)}</div></div>
+ <div className="fare-total"><span>ESTIMATED METERED FARE</span><strong>${fare.total.toFixed(2)}</strong><p>Before tips and other tolls</p><div className="fare-breakdown">{fare.breakdown.filter(b=>b.amount>0).map(b=><div key={b.label}><span>{b.label}</span><b>${b.amount.toFixed(2)}</b></div>)}</div><a href={fare.source} target="_blank" rel="noreferrer">View official TLC rates <ArrowUpRight size={14}/></a></div></div>
+ <p className="fare-disclaimer"><Info size={15}/>{fare.disclaimer} Rates checked against the TLC source on November 11, 2026.</p></section>;
+}
