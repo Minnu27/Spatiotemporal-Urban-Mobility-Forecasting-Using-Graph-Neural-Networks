@@ -50,3 +50,10 @@ test('arrival predictions reject stale feeds, skipped stops and canceled trips',
  const encode=(timestamp:number)=>GtfsRealtimeBindings.transit_realtime.FeedMessage.encode({header:{gtfsRealtimeVersion:'2.0',timestamp},entity:[trip('valid',false,false),trip('canceled',true,false),trip('skipped',false,true)]}).finish();
  const result=parseArrivals(encode(stamp),'127',Date.parse(now));assert.equal(result.arrivals.length,1);assert.equal(result.arrivals[0].tripId,'valid');assert.throws(()=>parseArrivals(encode(stamp-301),'127',Date.parse(now)));
 });
+
+test('the actual knowledge corpus answers the model and cab-price quick prompts',async()=>{
+ const {corpus}=await import('../lib/rag');
+ const docs=corpus({incidents:[],feeds:[],fetchedAt:now});
+ assert.ok(retrieve('Which model performed best?',docs).some(d=>d.id==='validation'));
+ assert.ok(retrieve('What are cab prices?',docs).some(d=>d.id==='fares'));
+});

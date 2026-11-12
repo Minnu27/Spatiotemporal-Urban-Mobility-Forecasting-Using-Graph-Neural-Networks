@@ -1,7 +1,8 @@
 import knowledge from '@/data/knowledge.json';
 import research from '@/data/research.json';
 import type { AlertResult, Document } from './types';
-export const tokens=(s:string): string[] =>s.toLowerCase().match(/[a-z0-9]+/g) ?? [];
+const synonyms:Record<string,string>={cab:'taxi',cabs:'taxi',prices:'fare',price:'fare',pricing:'fare',fares:'fare',cost:'fare',costs:'fare',models:'model',predictions:'forecast',prediction:'forecast',predict:'forecast',closures:'closure',closing:'closure',closed:'closure',trains:'train',subways:'subway',results:'result'};
+export const tokens=(s:string): string[] =>(s.toLowerCase().match(/[a-z0-9]+/g) ?? []).map(t=>synonyms[t] ?? t);
 const stop=new Set(['the','is','a','an','to','for','of','in','on','and','what','how','are','it','me','about','can','i']);
 export function retrieve(query: string, docs: Document[], limit=5): Document[] {
   const q=[...new Set(tokens(query).filter(t=>!stop.has(t)))];

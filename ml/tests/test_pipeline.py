@@ -50,3 +50,15 @@ def test_model_forward_backward_and_graph_normalization(kind):
     model.train();out=model(torch.randn(2,12,3),torch.randn(2,12,4));assert out.shape==(2,6,3);assert torch.isfinite(out).all()
     out.square().mean().backward();assert any(p.grad is not None and p.grad.abs().sum()>0 for p in model.parameters())
     if kind=='gwn':assert torch.allclose(model.adaptive_adj().sum(1),torch.ones(3))
+
+def test_graph_convolution_matches_hand_calculated_neighbor_values():
+    from mobility.models import GraphConv,DiffusionConv
+    a=np.array([[0,.25],[1,0]],dtype=np.float32)
+    x=torch.tensor([[[2.],[8.]]])
+    layer=GraphConv(1,1,a,K=1)
+    with torch.no_grad():layer.lin.weight.copy_(torch.tensor([[0.,1.]]));layer.lin.bias.zero_()
+    torch.testing.assert_close(layer(x),torch.tensor([[[2.],[2.]]]))
+    diffusion=DiffusionConv(1,1,n_supports=1,order=1,dropout=0)
+    with torch.no_grad():diffusion.mlp.weight.zero_();diffusion.mlp.weight[0,1,0,0]=1;diffusion.mlp.bias.zero_()
+    value=diffusion(x.permute(0,2,1).unsqueeze(-1),[torch.from_numpy(a)])
+    torch.testing.assert_close(value,torch.tensor([[[[2.],[2.]]]]))

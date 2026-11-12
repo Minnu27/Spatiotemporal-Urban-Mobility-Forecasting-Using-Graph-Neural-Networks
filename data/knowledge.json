@@ -8,7 +8,7 @@
   },
   {
     "id": "validation",
-    "title": "Research accuracy and limitations",
+    "title": "Model comparison: best saved results and accuracy limitations",
     "text": "Saved November\u2013December 2025 notebook results: spatial LightGBM MAE 3.528, 4.368, 4.716 at 1,3,6 hours. Correlation GCN-GRU MAE 4.086,4.730,5.031. No-graph GRU MAE 4.523,5.088,5.570. These are saved outputs, not independently reproduced. Full-year gap imputation used future statistics, so historical scores require a corrected rerun. Never claim that GNN beats LightGBM or that these scores measure current live accuracy.",
     "kind": "research",
     "url": "https://github.com/Minnu27/Spatiotemporal-Urban-Mobility-Forecasting-Using-Graph-Neural-Networks"

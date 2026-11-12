@@ -54,7 +54,9 @@ export async function getAlerts(force = false): Promise<AlertResult> {
   if (!force && cache && cache.expires > Date.now()) return cache.value;
   const now = new Date().toISOString();
   // NYC local date, not the server's UTC date, for local permit dates.
-  const day = new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+  const dateParts = new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  const part=(name:string)=>dateParts.find(p=>p.type===name)!.value;
+  const day=`${part('year')}-${part('month')}-${part('day')}`;
   const query = new URLSearchParams({'$where':`work_start_date <= '${day}T23:59:59' AND work_end_date >= '${day}T00:00:00'`,'$limit':'300','$order':'work_start_date DESC'});
   let mtaPublishedAt: string | undefined;
   const sources = [
@@ -71,7 +73,7 @@ export async function getAlerts(force = false): Promise<AlertResult> {
   results.forEach((r,i)=> {
     const source=sources[i].source;
     if (r.status==='fulfilled' && r.value !== null) { incidents.push(...r.value); feeds.push({source,state:'live',detail:source==='NYC DOT'?'Active planned work permits; up to 300 records.':`Active reports. Feed generated ${mtaPublishedAt ?? 'unknown'}.`,fetchedAt:now}); }
-    else feeds.push({source,state:r.status==='fulfilled'?'not_configured':'unavailable',detail:r.status==='fulfilled'?'Authorized feed endpoint required.':'Source could not be reached or parsed. Retry later.',fetchedAt:now});
+    else { if(r.status==='rejected') console.warn('Mobility feed unavailable',source,r.reason instanceof Error?r.reason.message:'Unknown failure'); feeds.push({source,state:r.status==='fulfilled'?'not_configured':'unavailable',detail:r.status==='fulfilled'?'Authorized feed endpoint required.':'Source could not be reached or parsed. Retry later.',fetchedAt:now}); }
   });
   const unique=[...new Map(incidents.map(v=>[v.id,v])).values()];
   const value={incidents:unique,feeds,fetchedAt:now}; cache={expires:Date.now()+60_000,value}; return value;
