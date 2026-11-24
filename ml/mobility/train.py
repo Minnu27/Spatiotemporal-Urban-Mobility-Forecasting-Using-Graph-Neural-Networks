@@ -89,7 +89,7 @@ def train(args):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--demand',type=pathlib.Path,required=True);p.add_argument('--graphs',type=pathlib.Path,required=True);p.add_argument('--out',type=pathlib.Path,required=True)
-    p.add_argument('--train-end',default='2025-10-01');p.add_argument('--val-end',default='2025-11-01');p.add_argument('--epochs',type=int,default=60);p.add_argument('--patience',type=int,default=6);p.add_argument('--seed',type=int,default=42);p.add_argument('--threads',type=int,default=4);p.add_argument('--batch-size',type=int,default=16);p.add_argument('--history',type=int,default=12);p.add_argument('--horizon',type=int,default=6)
+    p.add_argument('--train-end',default='2025-10-01');p.add_argument('--val-end',default='2025-11-01');p.add_argument('--epochs',type=int,default=60);p.add_argument('--patience',type=int,default=6);p.add_argument('--seed',type=int,default=42);p.add_argument('--threads',type=int,default=4);p.add_argument('--batch-size',type=int,default=16);p.add_argument('--history',type=int,default=12);p.add_argument('--horizon',type=int,default=24)
     args=p.parse_args()
-    if args.epochs<1 or args.batch_size<1 or args.history<1 or not 1<=args.horizon<=6:p.error('Invalid training configuration')
+    if args.epochs<1 or args.batch_size<1 or args.history<1 or not 1<=args.horizon<=24:p.error('Invalid training configuration')
     train(args)

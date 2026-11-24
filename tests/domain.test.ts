@@ -57,3 +57,38 @@ test('the actual knowledge corpus answers the model and cab-price quick prompts'
  assert.ok(retrieve('Which model performed best?',docs).some(d=>d.id==='validation'));
  assert.ok(retrieve('What are cab prices?',docs).some(d=>d.id==='fares'));
 });
+
+test('fractional meter units share one rounding step', () => {
+  const fare = estimateFare({...baseFare, milesAbove12mph: 0.04, slowMinutes: 0.25});
+  assert.equal(fare.breakdown.find(charge => charge.label === 'Metered distance and slow time')?.amount, 0.7);
+});
+
+test('trip quotes use NYC departure time and the JFK flat fare across all supported horizons', async () => {
+  const { calculateQuote, findTrip, quoteInput } = await import('../lib/trip-fare');
+  const trip = findTrip(132, 161)!;
+  const departureBase = Date.parse('2026-11-24T20:30:00Z');
+  for (const horizon of [1, 3, 6, 12, 24]) {
+    const input = quoteInput.parse({ pickup: 132, dropoff: 161, horizon });
+    const quote = calculateQuote(input, trip, null, departureBase);
+    assert.equal(Date.parse(quote.departure), departureBase + horizon * 3600000);
+    assert.equal(quote.total, horizon <= 3 ? 78.5 : 73.5);
+    assert.equal(quote.maximum, quote.total + 3.25);
+  }
+  const holiday = calculateQuote(quoteInput.parse({ pickup: 132, dropoff: 161, horizon: 1 }), trip, null, Date.parse('2026-11-26T20:30:00Z'));
+  assert.equal(holiday.total, 73.5);
+  assert.equal(quoteInput.safeParse({ pickup: 132, dropoff: 161, horizon: 2 }).success, false);
+});
+
+test('airport fees depend on the trip direction and the airport', async () => {
+  const { calculateQuote, findTrip, quoteInput } = await import('../lib/trip-fare');
+  const now = Date.parse('2026-11-24T17:00:00Z');
+  const quote = (pickup: number, dropoff: number) => calculateQuote(
+    quoteInput.parse({ pickup, dropoff, horizon: 1, manual: { milesAbove12mph: 2, slowMinutes: 0 } }),
+    findTrip(pickup, dropoff)!, null, now,
+  );
+  assert.equal(quote(161, 132).total, 71.5);
+  assert.equal(quote(138, 161).total, 18.5);
+  assert.equal(quote(161, 138).total, 16.5);
+  assert.equal(quote(161, 1).total, 31);
+  assert.equal(findTrip(1, 161), null);
+});
