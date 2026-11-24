@@ -10,3 +10,13 @@
 /* Secondary text remains readable on pale surfaces. */
 .page-heading p,.panel-heading p,.stat-card p,.detail-copy,.zone-borough,.zone-forecast>p span,.report-content>p,.chat-intro>p,.chat-footnote,.chat-form textarea::placeholder,.method-note p,.research-preview p,.sidebar-note p,.chart-note,.fare-disclaimer,.fare-context p,.audit-items p,.feed-card p,.arrivals-empty{color:#687b60}.eyebrow,.stat-card>div>span,.report-meta,.report-times,.source-strip,.date-chip,.map-bottom,.panel-footer,.app-footer,.small-tag,.suggestions button,.fare-options label,.fare-fields>label,.fare-total>span,.fare-total>p,.fare-breakdown>div,.arrival-cards>div>div>span{color:#647858}.report-meta{font-size:9px}.report-times,.panel-footer,.chat-footnote,.map-bottom{font-size:9px}.map-attribution{color:#52684e}.zone-score small{color:#7c8c70}.risk-tag{color:#60744d}.fare-breakdown b,.fare-total>a,.citations a{color:#527241}.sidebar .nav-label{color:#6d7e62}.sidebar-note p{color:#6a7c5d}.city-time,.breadcrumb,.profile small{color:#6e7e66}.suggestions button:hover{color:#3f643b}.map-labels{fill:#365847;opacity:1}.zone-path[aria-pressed=true]{stroke-width:2.5;stroke:#e2bd60}
 @media(max-width:680px){.sidebar{visibility:hidden}.sidebar.is-open{visibility:visible}}
+
+.trip-fields{border:0;min-width:0;margin:0;padding:0;display:grid;gap:16px}
+.trip-fields label{display:grid;gap:7px;font-size:14px;font-weight:600;color:#365847}
+.trip-fields select{width:100%;min-height:44px;padding:8px 10px;border:1px solid #bccab6;border-radius:6px;font:inherit;color:#28473a;background:#fff}
+.trip-total{min-width:0}
+.trip-total strong{font-size:clamp(23px,3.5vw,43px);letter-spacing:-.04em}
+.trip-total>p,.trip-total>a,.trip-total .fare-breakdown>div{font-size:13px;line-height:1.5}
+.trip-total>p+p,.trip-total>a{margin-top:12px}
+.trip-layout{align-items:start}
+.zone-forecast .segmented{flex-wrap:wrap}

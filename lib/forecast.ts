@@ -1,7 +1,8 @@
+import { maxForecastHorizon } from './horizons';
 import { z } from 'zod';
 import { fetchJson, serverUrl } from './http';
 import type { Forecast } from './types';
-const schema=z.object({mode:z.enum(['historical','live']),model:z.string(),issuedAt:z.iso.datetime({offset:true}),historySource:z.string(),rows:z.array(z.object({zoneId:z.number().int().min(1).max(263),horizon:z.number().int().min(1).max(6),value:z.number().finite().min(0)})).max(1578),message:z.string()});
+const schema=z.object({mode:z.enum(['historical','live']),model:z.string(),issuedAt:z.iso.datetime({offset:true}),historySource:z.string(),rows:z.array(z.object({zoneId:z.number().int().min(1).max(263),horizon:z.number().int().min(1).max(maxForecastHorizon),value:z.number().finite().min(0)})).max(263 * maxForecastHorizon),message:z.string()});
 export async function getForecast():Promise<Forecast> {
   const unavailable:Forecast={mode:'unavailable',model:null,issuedAt:new Date().toISOString(),historySource:null,rows:[],message:'Connect a trained model and recent observed demand to enable forecasts. Saved notebook metrics are available in Research.'};
   if (!process.env.MODEL_SERVICE_URL || !process.env.MODEL_SERVICE_TOKEN) return unavailable;

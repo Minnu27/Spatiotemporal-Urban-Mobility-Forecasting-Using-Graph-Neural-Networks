@@ -1,1 +1,19 @@
-{"framework":"nextjs","functions":{"app/api/chat/route.ts":{"maxDuration":60},"app/api/alerts/route.ts":{"maxDuration":30},"app/api/forecast/route.ts":{"maxDuration":30}}}
+{
+  "framework": "nextjs",
+  "functions": {
+    "app/api/chat/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/alerts/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/forecast/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/fare/route.ts": {
+      "maxDuration": 15
+    }
+  },
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build"
+}
