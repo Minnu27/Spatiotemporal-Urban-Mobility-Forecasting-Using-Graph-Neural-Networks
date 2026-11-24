@@ -38,7 +38,7 @@ export function estimateFare(raw: FareInput, trip: TripRates = {}) {
     ['Improvement surcharge', 100],
     ['Overnight surcharge', !trip.jfkFlat && overnight ? 100 : 0],
     ['Weekday rush hour', rushHour ? (trip.jfkFlat ? 500 : 250) : 0],
-    ['State congestion surcharge', v.south96 || v.south60 ? 250 : 0],
+    ['State congestion surcharge', !trip.newarkDropoff && (v.south96 || v.south60) ? 250 : 0],
     ['Congestion Relief Zone toll', v.south60 ? 75 : 0],
     ['Airport pickup fee', trip.airportPickup ? 200 : 0],
     ['LaGuardia surcharge', trip.laguardia ? 500 : 0],

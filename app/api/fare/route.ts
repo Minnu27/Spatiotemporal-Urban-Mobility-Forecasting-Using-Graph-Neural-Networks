@@ -17,23 +17,24 @@ export async function POST(request: Request) {
   let json: unknown;
   try { json = JSON.parse(body); } catch { return reply({ error: 'Send a valid JSON fare request.' }, 400); }
   const parsed = quoteInput.safeParse(json);
-  if (!parsed.success) return reply({ error: 'Choose a valid pickup, drop-off and departure time.' }, 400);
+  if (!parsed.success) return reply({ error: 'Choose a valid pickup and drop-off.' }, 400);
 
   const input = parsed.data;
   const trip = findTrip(input.pickup, input.dropoff);
   if (!trip) return reply({ error: 'Select a pickup in NYC and a supported drop-off.' }, 400);
 
-  if (input.manual || usesJfkFlatRate(trip)) return reply(calculateQuote(input, trip, null, now));
+  if (input.manual) return reply(calculateQuote(input, trip, null, now));
   if (input.pickup === input.dropoff) {
-    return reply({ error: 'For trips within one zone, enter distance and slow time under Fare details.' }, 422);
+    return reply({ error: 'Choose a different drop-off zone. A zone-to-zone estimate needs two distinct locations.' }, 422);
   }
   const endpoint = process.env.ROUTING_SERVICE_URL;
-  if (!endpoint) return reply({ error: 'Automatic routing is unavailable. Enter distance and slow time under Fare details.' }, 503);
+  if (!endpoint && usesJfkFlatRate(trip)) return reply(calculateQuote(input, trip, null, now));
+  if (!endpoint) return reply({ error: 'Route estimates are temporarily unavailable.' }, 503);
 
   try {
     const route = await routeMeter(trip, endpoint);
     return reply(calculateQuote(input, trip, route, now));
   } catch {
-    return reply({ error: 'A road route was unavailable. Try again or enter distance and slow time under Fare details.' }, 502);
+    return reply({ error: 'A road route was unavailable. Try again or choose another location.' }, 502);
   }
 }

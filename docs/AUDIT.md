@@ -48,7 +48,7 @@ The selected GNN improved on GRU but did **not** beat spatial LightGBM. No new c
 - MTA station selectors use official NY State open-data station stop IDs, originally downloaded from the MTA entrances dataset `i9wp-a4ja`. The snapshot can be regenerated if station identifiers change.
 - Citizen: unused unless an authorized adapter is supplied. No scraping, undocumented API claim, or invented Citizen data.
 - Disruption exposure: distance-decay **heuristic**, not learned future closures, calibrated probabilities, actual road routing, demand uplift, or a GNN output. Unlocated subway alerts are not given fabricated coordinates.
-- Taxi estimator: source-checked TLC standard yellow taxi meter rules. It combines fast distance and slow or stopped time before rounding the meter units, adds applicable airport and time surcharges, and shows a range when Manhattan congestion charges are uncertain. Route-based estimates use zone centers and typical speeds. Tips and unspecified tolls are excluded. Review rate changes against the official source.
+- Taxi estimator: source-checked TLC standard yellow taxi meter rules. It combines fast distance and slow or stopped time before rounding the meter units, adds applicable airport and time surcharges, and estimates congestion charges and detected bridge or tunnel tolls from the road route. Route-based estimates use zone centers and typical speeds. Tips and unspecified tolls are excluded. Review rate changes against the official source.
 
 ## RAG and operational boundaries
 

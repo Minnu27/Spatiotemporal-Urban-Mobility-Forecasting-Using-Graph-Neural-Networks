@@ -44,7 +44,7 @@
   {
     "id": "fares",
     "title": "NYC yellow taxi prices",
-    "text": "TLC standard metered yellow taxi fare: $3 initial, $0.70 per fifth of a mile above 12 mph OR per 60 seconds slow/stopped, $0.50 state surcharge, $1 improvement surcharge, $1 overnight 8pm\u20136am, $2.50 weekday 4pm\u20138pm excluding holidays. Manhattan south of 96th: $2.50; applicable Congestion Relief Zone south of and including 60th: $0.75. Add tolls/tips. Trip costs supports the JFK–Manhattan flat fare, JFK and LaGuardia pickup fees, the LaGuardia trip surcharge, and NYC pickups going to Newark Airport. Enter known bridge or tunnel tolls in Fare details. Uber/Lyft/e-hail prices require provider quotes and cannot be inferred accurately from subway alerts.",
+    "text": "TLC standard metered yellow taxi fare: $3 initial, $0.70 per fifth of a mile above 12 mph OR per 60 seconds slow/stopped, $0.50 state surcharge, $1 improvement surcharge, $1 overnight 8pm\u20136am, $2.50 weekday 4pm\u20138pm excluding holidays. Manhattan south of 96th: $2.50; applicable Congestion Relief Zone south of and including 60th: $0.75. Add tolls/tips. Trip costs supports the JFK–Manhattan flat fare, JFK and LaGuardia pickup fees, the LaGuardia trip surcharge, and NYC pickups going to Newark Airport. It estimates congestion charges and detected bridge and tunnel tolls from the road route. Uber/Lyft/e-hail prices require provider quotes and cannot be inferred accurately from subway alerts.",
     "kind": "fare",
     "url": "https://www.nyc.gov/site/tlc/passengers/taxi-fare.page"
   }

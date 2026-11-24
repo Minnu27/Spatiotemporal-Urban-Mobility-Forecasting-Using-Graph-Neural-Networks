@@ -3,12 +3,13 @@ import zones from '@/data/zones.json';
 import { estimateFare, meterInputs } from './fares';
 import { isNewYorkHoliday } from './ny-holidays';
 import { tripHorizons } from './horizons';
+import { congestionCharges, routeTolls } from './route-charges';
 import { fetchJson, serverUrl } from './http';
 
 export const quoteInput = z.object({
   pickup: z.number().int(),
   dropoff: z.number().int(),
-  horizon: z.literal(tripHorizons),
+  horizon: z.literal([0, ...tripHorizons]).default(0),
   congestion: z.enum(['unknown', 'none', 'state', 'both']).default('unknown'),
   holiday: z.boolean().default(false),
   tolls: z.number().min(0).max(100).default(0),
@@ -17,12 +18,15 @@ export const quoteInput = z.object({
 
 export const pickupZones = zones.filter(z => z.borough !== 'EWR');
 
+const geometry = z.object({ coordinates: z.array(z.tuple([z.number(), z.number()])).min(2) });
+
 const routeSchema = z.object({
   code: z.literal('Ok'),
   routes: z.array(z.object({
     distance: z.number().positive(),
     duration: z.number().positive(),
-    legs: z.tuple([z.object({ annotation: z.object({
+    geometry,
+    legs: z.tuple([z.object({ steps: z.array(z.object({ name: z.string(), geometry })), annotation: z.object({
       distance: z.array(z.number().nonnegative()).min(1),
       duration: z.array(z.number().nonnegative()).min(1),
     }) })]),
@@ -46,8 +50,8 @@ export function usesJfkFlatRate({ from, to }: NonNullable<ReturnType<typeof find
 
 export async function routeMeter({ from, to }: NonNullable<ReturnType<typeof findTrip>>, endpoint: string) {
   const points = [from, to].map(z => `${z.longitude},${z.latitude}`).join(';');
-  const routeUrl = `${serverUrl(endpoint)}/route/v1/driving/${points}?overview=false&annotations=distance,duration`;
-  const { routes: [route] } = routeSchema.parse(await fetchJson(routeUrl, {}, 500_000, 8000));
+  const routeUrl = `${serverUrl(endpoint)}/route/v1/driving/${points}?overview=full&geometries=geojson&steps=true&annotations=distance,duration`;
+  const { routes: [route] } = routeSchema.parse(await fetchJson(routeUrl, {}, 2_000_000, 8000));
   const { distance, duration } = route.legs[0].annotation;
   if (distance.length !== duration.length) throw new Error('Invalid routing annotations');
   let fastMeters = 0;
@@ -61,6 +65,8 @@ export async function routeMeter({ from, to }: NonNullable<ReturnType<typeof fin
     ...meterInputs.parse({ milesAbove12mph: fastMeters / 1609.344, slowMinutes: slowSeconds / 60 }),
     miles: route.distance / 1609.344,
     minutes: route.duration / 60,
+    ...congestionCharges(route.geometry.coordinates),
+    steps: route.legs[0].steps,
   };
 }
 
@@ -87,16 +93,22 @@ export function calculateQuote(
     laguardia: [trip.from.id, trip.to.id].includes(138),
     newarkDropoff: trip.to.borough === 'EWR',
   };
+  const charges = route && routeTolls(route.steps, base.localHour, weekday, rates.newarkDropoff);
+  const routeTollTotal = charges?.reduce((sum, toll) => sum + Math.round(toll.amount * 100), 0) ?? 0;
   const fare = estimateFare({
     ...base,
-    south96: input.congestion === 'state' || input.congestion === 'both',
-    south60: input.congestion === 'both',
+    south96: (route?.south96 && !rates.newarkDropoff) || input.congestion === 'state' || input.congestion === 'both',
+    south60: route?.south60 || input.congestion === 'both',
   }, rates);
-  const maximum = input.congestion === 'unknown'
+  const maximum = !route && input.congestion === 'unknown'
     ? estimateFare({ ...base, south96: true, south60: true }, rates).total
     : fare.total;
   return {
-    ...fare, maximum, departure: departure.toISOString(),
+    ...fare,
+    total: (Math.round(fare.total * 100) + routeTollTotal) / 100,
+    breakdown: [...fare.breakdown, ...(charges ?? [])],
+    maximum: (Math.round(maximum * 100) + routeTollTotal) / 100,
+    departure: departure.toISOString(),
     basis: jfkFlat ? 'flat' as const : input.manual ? 'manual' as const : 'route' as const,
     tolls: input.tolls, newarkDropoff: rates.newarkDropoff,
     route: route && { miles: route.miles, minutes: route.minutes },

@@ -38,16 +38,18 @@ Production paid generation also requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_R
 
 1. Import this GitHub repository in Vercel. Select this branch or merge the reviewed change first. Framework: **Next.js**, root: repository root, install: `npm ci`, build: `npm run build`. Choose Node 24 for parity with validation (Node 22+ supported).
 2. Add the server-only variables from `.env.example`. Only Qwen and the shared limiter need credentials for generated answers; NYC DOT and MTA do not. Leave optional model/Citizen variables empty until those services exist.
-3. Deploy. Validate `/api/health`, `/api/alerts`, `/api/arrivals?station=127`, `/api/forecast` the chatbot, and a `POST /api/fare` request such as `{"pickup":132,"dropoff":161,"horizon":12}`. A successful health route verifies the app, not third-party availability. An unconfigured forecast is explicitly unavailable, not sample data.
+3. Deploy. Validate `/api/health`, `/api/alerts`, `/api/arrivals?station=127`, `/api/forecast` the chatbot, and a `POST /api/fare` request such as `{"pickup":132,"dropoff":161}`. A successful health route verifies the app, not third-party availability. An unconfigured forecast is explicitly unavailable, not sample data.
 4. Use a separate persistent Python host (Render, Railway, a VM, or equivalent) for PyTorch. Vercel is not used for GPU training or checkpoint loading. Set `MODEL_SERVICE_URL` and a matching `MODEL_SERVICE_TOKEN` after that service is available.
 
 This repository includes `vercel.json`; no Vercel account credentials or deployment IDs are embedded. A live deployment requires an authenticated Vercel account.
 
 ## Trip costs
 
-Choose two TLC taxi zones and a departure 1, 3, 6, 12, or 24 hours ahead. The fare API applies published TLC rates in New York local time, including weekday/holiday, airport and optional congestion charges. It automatically applies the JFK–Manhattan flat fare. When congestion is uncertain, it shows the range before other tolls and tips.
+Choose two TLC taxi zones. The dashboard requests a fare for a trip leaving now using New York local time. The fare API uses the route geometry to apply the MTA relief-zone toll and estimate the state's 96th Street surcharge. Detected bridge and tunnel crossings use standard passenger E-ZPass rates. Newark quotes estimate return tolls using the outbound route and departure time. Actual addresses, the chosen route and traffic can change the fare.
 
-Set the server-only `ROUTING_SERVICE_URL` to an HTTPS OSRM-compatible driving endpoint for automatic road distance and typical speeds. The API requests per-segment distance and duration annotations to separate fast distance from slow travel time. Routes use zone centers, so actual addresses and traffic can change the fare. When routing is unavailable, riders can enter measured distance and slow time in Fare details.
+Set the server-only `ROUTING_SERVICE_URL` to an HTTPS OSRM-compatible driving endpoint. The API requests road geometry, named steps and distance/duration annotations. Routes use distinct TLC zone centers. When routing is unavailable, JFK–Manhattan can still show the flat tariff with a possible congestion range and without bridge/tunnel tolls.
+
+The [MTA relief-zone geofence](https://data.ny.gov/d/srxy-5nxn) is stored in `data/congestion-relief-zone.json`. Crossing tariffs are based on the [MTA E-ZPass tariff](https://www.mta.info/document/186876) and [Port Authority E-ZPass rates](https://www.panynj.gov/bridges-tunnels/en/tolls.html). Review these when toll rates change.
 
 The existing model service forecasts hourly pickups by zone. Live pickup demand appears as separate trip context and does not change the regulated fare. A 24-hour checkpoint is required to show all five demand horizons.
 

@@ -92,3 +92,26 @@ test('airport fees depend on the trip direction and the airport', async () => {
   assert.equal(quote(161, 1).total, 31);
   assert.equal(findTrip(1, 161), null);
 });
+
+test('route geography applies congestion and detects an unnamed Queens Midtown Tunnel step', async () => {
+  const { congestionCharges, routeTolls } = await import('../lib/route-charges');
+  assert.deepEqual(congestionCharges([[-73.9768, 40.75651]]), { south96: true, south60: true });
+  assert.deepEqual(congestionCharges([[-73.9711, 40.79106]]), { south96: true, south60: false });
+  assert.deepEqual(congestionCharges([[-73.94975, 40.8059]]), { south96: false, south60: false });
+  const step = { name: '', geometry: { coordinates: [[-73.968, 40.7458], [-73.961, 40.7453]] } };
+  assert.deepEqual(routeTolls([step, step], 10, true, false), [{ label: 'Queens Midtown Tunnel', amount: 7.46 }]);
+});
+
+test('a two-location fare defaults to the current departure and picks up route charges', async () => {
+  const { calculateQuote, findTrip, quoteInput } = await import('../lib/trip-fare');
+  const input = quoteInput.parse({ pickup: 161, dropoff: 132 });
+  const now = Date.parse('2026-11-24T22:00:00Z');
+  const result = calculateQuote(input, findTrip(161, 132)!, {
+    milesAbove12mph: 10, slowMinutes: 2, miles: 13, minutes: 30,
+    south96: true, south60: true,
+    steps: [{ name: 'Queens Midtown Tunnel', geometry: { coordinates: [] } }],
+  }, now);
+  assert.equal(Date.parse(result.departure), now);
+  assert.equal(result.total, 87.21);
+  assert.equal(result.maximum, result.total);
+});

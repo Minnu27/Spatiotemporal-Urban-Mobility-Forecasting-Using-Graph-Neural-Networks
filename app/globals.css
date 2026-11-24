@@ -13,12 +13,7 @@
 
 .trip-fields{border:0;min-width:0;margin:0;padding:0;display:grid;gap:16px}
 .trip-fields label{display:grid;gap:7px;font-size:14px;font-weight:600;color:#365847}
-.trip-fields select,.trip-fields input[type=number]{width:100%;min-height:44px;padding:8px 10px;border:1px solid #bccab6;border-radius:6px;font:inherit;color:#28473a;background:#fff}
-.trip-fields details{padding:12px;border:1px solid #d5dfce;border-radius:7px;color:#365847}
-.trip-fields summary{cursor:pointer;font-size:14px}
-.trip-fields details label{margin-top:12px}
-.trip-fields .trip-checkbox{display:flex;align-items:center;font-weight:400}
-.trip-fields button{justify-self:start;min-height:44px}
+.trip-fields select{width:100%;min-height:44px;padding:8px 10px;border:1px solid #bccab6;border-radius:6px;font:inherit;color:#28473a;background:#fff}
 .trip-total{min-width:0}
 .trip-total strong{font-size:clamp(23px,3.5vw,43px);letter-spacing:-.04em}
 .trip-total>p,.trip-total>a,.trip-total .fare-breakdown>div{font-size:13px;line-height:1.5}
