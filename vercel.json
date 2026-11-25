@@ -14,6 +14,6 @@
       "maxDuration": 15
     }
   },
-  "installCommand": "npm ci",
+  "installCommand": "ONNXRUNTIME_NODE_INSTALL=skip npm ci",
   "buildCommand": "npm run build"
 }

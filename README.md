@@ -1,6 +1,6 @@
 # UrbanFlow — NYC mobility intelligence
 
-A Next.js dashboard for NYC taxi-demand research, official subway arrivals/service alerts, construction permits, transparent taxi-fare estimation, and a Qwen RAG assistant. Vercel hosts the web frontend and API routes; a separate Python service handles PyTorch inference.
+A Next.js dashboard for NYC taxi-demand research, official subway arrivals/service alerts, construction permits, transparent taxi-fare estimation, and a Qwen RAG assistant. Vercel hosts the web frontend and API routes; the bundled Colab model runs a historical replay through ONNX Runtime. A separate Python service can provide fresh forecasts.
 
 **Research status:** the original notebook has been corrected for future-data leakage and its outputs cleared. Archived scores in `data/research.json` are not independently reproduced. Spatial LightGBM outperformed the GNN in those scores. See [the audit](docs/AUDIT.md).
 
@@ -38,7 +38,7 @@ Production paid generation also requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_R
 
 1. Import this GitHub repository in Vercel. Select this branch or merge the reviewed change first. Framework: **Next.js**, root: repository root, install: `npm ci`, build: `npm run build`. Choose Node 24 for parity with validation (Node 22+ supported).
 2. Add the server-only variables from `.env.example`. Only Qwen and the shared limiter need credentials for generated answers; NYC DOT and MTA do not. Leave optional model/Citizen variables empty until those services exist.
-3. Deploy. Validate `/api/health`, `/api/alerts`, `/api/arrivals?station=127`, `/api/forecast` the chatbot, and a `POST /api/fare` request such as `{"pickup":132,"dropoff":161}`. A successful health route verifies the app, not third-party availability. An unconfigured forecast is explicitly unavailable, not sample data.
+3. Deploy. Validate `/api/health`, `/api/alerts`, `/api/arrivals?station=127`, `/api/forecast` the chatbot, and a `POST /api/fare` request such as `{"pickup":132,"dropoff":161}`. A successful health route verifies the app, not third-party availability. With the historical observation window configured, the dashboard runs the ONNX replay and displays its target date.
 4. Use a separate persistent Python host (Render, Railway, a VM, or equivalent) for PyTorch. Vercel is not used for GPU training or checkpoint loading. Set `MODEL_SERVICE_URL` and a matching `MODEL_SERVICE_TOKEN` after that service is available.
 
 This repository includes `vercel.json`; no Vercel account credentials or deployment IDs are embedded. A live deployment requires an authenticated Vercel account.
@@ -52,6 +52,10 @@ Set the server-only `ROUTING_SERVICE_URL` to an HTTPS OSRM-compatible driving en
 The [MTA relief-zone geofence](https://data.ny.gov/d/srxy-5nxn) is stored in `data/congestion-relief-zone.json`. Crossing tariffs are based on the [MTA E-ZPass tariff](https://www.mta.info/document/186876) and [Port Authority E-ZPass rates](https://www.panynj.gov/bridges-tunnels/en/tolls.html). Review these when toll rates change.
 
 The existing model service forecasts hourly pickups by zone. Live pickup demand appears as separate trip context and does not change the regulated fare. A 24-hour checkpoint is required to show all five demand horizons.
+
+## Colab model replay
+
+`/api/forecast` runs the exported Residual Graph (OD + correlation) model on a held-out 2025 TLC observation window. It returns 1, 3, 6, 12, and 24-hour pickup predictions for 263 zones in historical mode. This uses the fixed 168-hour input and feature order in the Colab export. The forecast time is the end of that observed window. The server-only `COLAB_HISTORICAL_INPUT_GZIP` setting holds the gzip-compressed, base64-encoded request. The request must include an ISO 8601 origin with a UTC offset. Supply `MODEL_SERVICE_URL` and `MODEL_SERVICE_TOKEN` to use the live-model service with fresh observations.
 
 ## Train, audit and serve the models
 
