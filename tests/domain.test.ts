@@ -115,3 +115,30 @@ test('a two-location fare defaults to the current departure and picks up route c
   assert.equal(result.total, 87.21);
   assert.equal(result.maximum, result.total);
 });
+
+test('Mapbox Directions provides road details for an automatic fare', async (testContext) => {
+  const { routeMeter, findTrip } = await import('../lib/trip-fare');
+  const start = [-73.89, 40.84];
+  const stop = [-73.83, 40.88];
+  testContext.mock.method(globalThis, 'fetch', async (input: string) => {
+    const url = new URL(input);
+    assert.equal(url.host, 'api.mapbox.com');
+    assert.match(url.pathname, /^\/directions\/v5\/mapbox\/driving\//);
+    assert.equal(url.searchParams.get('access_token'), 'pk.test-token');
+    assert.equal(url.searchParams.get('annotations'), 'distance,duration');
+    return Response.json({
+      code: 'Ok',
+      routes: [{
+        distance: 3200, duration: 480, geometry: { coordinates: [start, stop] },
+        legs: [{
+          annotation: { distance: [3000, 200], duration: [300, 180] },
+          steps: [{ name: 'Arrival', geometry: { coordinates: [stop] } }],
+        }],
+      }],
+    });
+  });
+  const result = await routeMeter(findTrip(78, 81)!, { mapboxToken: 'pk.test-token' });
+  assert.equal(result.minutes, 8);
+  assert.equal(result.slowMinutes, 3);
+  assert.equal(result.milesAbove12mph, 3000 / 1609.344);
+});
