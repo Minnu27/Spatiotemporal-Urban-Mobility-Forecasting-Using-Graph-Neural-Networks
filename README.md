@@ -47,7 +47,7 @@ This repository includes `vercel.json`; no Vercel account credentials or deploym
 
 Choose two TLC taxi zones. The dashboard requests a fare for a trip leaving now using New York local time. The fare API uses the route geometry to apply the MTA relief-zone toll and estimate the state's 96th Street surcharge. Detected bridge and tunnel crossings use standard passenger E-ZPass rates. Newark quotes estimate return tolls using the outbound route and departure time. Actual addresses, the chosen route and traffic can change the fare.
 
-Set the server-only `ROUTING_SERVICE_URL` to an HTTPS OSRM-compatible driving endpoint. The API requests road geometry, named steps and distance/duration annotations. Routes use distinct TLC zone centers. When routing is unavailable, JFK–Manhattan can still show the flat tariff with a possible congestion range and without bridge/tunnel tolls.
+Set the server-only `MAPBOX_ACCESS_TOKEN` to use Mapbox Directions. If you already have an HTTPS OSRM-compatible endpoint, `ROUTING_SERVICE_URL` takes precedence. The API requests road geometry, named steps and distance/duration annotations. Routes use distinct TLC zone centers. When routing is unavailable, JFK–Manhattan can still show the flat tariff with a possible congestion range and without bridge/tunnel tolls.
 
 The [MTA relief-zone geofence](https://data.ny.gov/d/srxy-5nxn) is stored in `data/congestion-relief-zone.json`. Crossing tariffs are based on the [MTA E-ZPass tariff](https://www.mta.info/document/186876) and [Port Authority E-ZPass rates](https://www.panynj.gov/bridges-tunnels/en/tolls.html). Review these when toll rates change.
 

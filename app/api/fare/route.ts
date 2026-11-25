@@ -1,4 +1,4 @@
-import { calculateQuote, findTrip, quoteInput, routeMeter, usesJfkFlatRate } from '@/lib/trip-fare';
+import { calculateQuote, findTrip, quoteInput, routeMeter, routingProvider, usesJfkFlatRate } from '@/lib/trip-fare';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,12 +27,12 @@ export async function POST(request: Request) {
   if (input.pickup === input.dropoff) {
     return reply({ error: 'Choose a different drop-off zone. A zone-to-zone estimate needs two distinct locations.' }, 422);
   }
-  const endpoint = process.env.ROUTING_SERVICE_URL;
-  if (!endpoint && usesJfkFlatRate(trip)) return reply(calculateQuote(input, trip, null, now));
-  if (!endpoint) return reply({ error: 'Route estimates are temporarily unavailable.' }, 503);
+  const provider = routingProvider();
+  if (!provider && usesJfkFlatRate(trip)) return reply(calculateQuote(input, trip, null, now));
+  if (!provider) return reply({ error: 'Route estimates are temporarily unavailable.' }, 503);
 
   try {
-    const route = await routeMeter(trip, endpoint);
+    const route = await routeMeter(trip, provider);
     return reply(calculateQuote(input, trip, route, now));
   } catch {
     return reply({ error: 'A road route was unavailable. Try again or choose another location.' }, 502);

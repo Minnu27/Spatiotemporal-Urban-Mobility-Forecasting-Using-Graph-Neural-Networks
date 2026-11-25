@@ -18,7 +18,9 @@ export const quoteInput = z.object({
 
 export const pickupZones = zones.filter(z => z.borough !== 'EWR');
 
-const geometry = z.object({ coordinates: z.array(z.tuple([z.number(), z.number()])).min(2) });
+const coordinates = z.array(z.tuple([z.number(), z.number()]));
+const geometry = z.object({ coordinates: coordinates.min(2) });
+const stepGeometry = z.object({ coordinates: coordinates.min(1) });
 
 const routeSchema = z.object({
   code: z.literal('Ok'),
@@ -26,7 +28,7 @@ const routeSchema = z.object({
     distance: z.number().positive(),
     duration: z.number().positive(),
     geometry,
-    legs: z.tuple([z.object({ steps: z.array(z.object({ name: z.string(), geometry })), annotation: z.object({
+    legs: z.tuple([z.object({ steps: z.array(z.object({ name: z.string(), geometry: stepGeometry })), annotation: z.object({
       distance: z.array(z.number().nonnegative()).min(1),
       duration: z.array(z.number().nonnegative()).min(1),
     }) })]),
@@ -48,10 +50,26 @@ export function usesJfkFlatRate({ from, to }: NonNullable<ReturnType<typeof find
     (to.id === 132 && from.borough === 'Manhattan');
 }
 
-export async function routeMeter({ from, to }: NonNullable<ReturnType<typeof findTrip>>, endpoint: string) {
+type RoutingProvider = { osrmUrl: string } | { mapboxToken: string };
+
+export function routingProvider(): RoutingProvider | null {
+  const osrmUrl = process.env.ROUTING_SERVICE_URL?.trim();
+  const mapboxToken = process.env.MAPBOX_ACCESS_TOKEN?.trim();
+  if (osrmUrl) return { osrmUrl };
+  return mapboxToken ? { mapboxToken } : null;
+}
+
+export async function routeMeter({ from, to }: NonNullable<ReturnType<typeof findTrip>>, provider: RoutingProvider) {
   const points = [from, to].map(z => `${z.longitude},${z.latitude}`).join(';');
-  const routeUrl = `${serverUrl(endpoint)}/route/v1/driving/${points}?overview=full&geometries=geojson&steps=true&annotations=distance,duration`;
-  const { routes: [route] } = routeSchema.parse(await fetchJson(routeUrl, {}, 2_000_000, 8000));
+  const routeUrl = 'osrmUrl' in provider
+    ? new URL(`${serverUrl(provider.osrmUrl)}/route/v1/driving/${points}`)
+    : new URL(`https://api.mapbox.com/directions/v5/mapbox/driving/${points}`);
+  routeUrl.searchParams.set('overview', 'full');
+  routeUrl.searchParams.set('geometries', 'geojson');
+  routeUrl.searchParams.set('steps', 'true');
+  routeUrl.searchParams.set('annotations', 'distance,duration');
+  if ('mapboxToken' in provider) routeUrl.searchParams.set('access_token', provider.mapboxToken);
+  const { routes: [route] } = routeSchema.parse(await fetchJson(routeUrl.toString(), {}, 2_000_000, 8000));
   const { distance, duration } = route.legs[0].annotation;
   if (distance.length !== duration.length) throw new Error('Invalid routing annotations');
   let fastMeters = 0;
