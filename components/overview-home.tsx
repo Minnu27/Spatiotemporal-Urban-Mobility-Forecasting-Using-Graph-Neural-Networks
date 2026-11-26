@@ -20,17 +20,18 @@ export default function OverviewHome({ selected, onSelect, onPlan, onNavigate, o
         <div className="hero-kicker"><span className="hero-badge"><Compass size={13}/>YOUR CITY. IN PERSPECTIVE.</span><span>NYC / 01</span></div>
         <h1 id="home-title">A smarter way<br/>to <em>move through NYC.</em></h1>
         <p className="hero-description">Find your route. See what’s changing.<br/>Make your next move with a clearer picture.</p>
+        <a className="hero-plan-link" href="#quick-planner">Plan a trip <ArrowRight size={16}/></a>
         <CityScene selected={selected} onSelect={onSelect}/>
         <a className="hero-map-link" href="#city-explorer">Explore the zone map <ArrowDown size={15}/></a>
       </div>
-      <div className="quick-planner">
+      <div className="quick-planner" id="quick-planner" tabIndex={-1}>
         <div className="planner-heading"><span className="planner-icon"><Route size={22}/></span><span className="planner-step">01 / PLAN AHEAD</span></div>
         <h2>Where are you headed?</h2><p>A little planning. A better trip.</p>
         <form onSubmit={event=>{event.preventDefault();if(pickup&&dropoff&&!same)onPlan({pickup:Number(pickup),dropoff:Number(dropoff),horizon:1});}}>
           <div className="quick-route-fields">
             <label htmlFor="quick-pickup"><span className="route-dot"/>Pickup zone</label>
             <select id="quick-pickup" value={pickup} onChange={event=>setPickup(event.target.value)} required><TaxiZoneOptions/></select>
-            <div className="route-connector"><i/><button type="button" aria-label="Swap pickup and drop-off" onClick={swap} disabled={!pickup||!dropoff||dropoff==='1'}><ArrowUpDown size={16}/></button></div>
+            <div className="route-connector"><i/><button type="button" aria-label="Swap pickup and drop-off" title={dropoff==='1'?'Newark is available as a drop-off only':'Swap pickup and drop-off'} onClick={swap} disabled={!pickup||!dropoff||dropoff==='1'}><ArrowUpDown size={16}/></button></div>
             <label htmlFor="quick-dropoff"><MapPin size={14}/>Drop-off zone</label>
             <select id="quick-dropoff" value={dropoff} onChange={event=>setDropoff(event.target.value)} required><TaxiZoneOptions allowNewark/></select>
           </div>
