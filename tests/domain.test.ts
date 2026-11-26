@@ -123,9 +123,10 @@ test('Mapbox Directions provides road details for an automatic fare', async (tes
   testContext.mock.method(globalThis, 'fetch', async (input: string) => {
     const url = new URL(input);
     assert.equal(url.host, 'api.mapbox.com');
-    assert.match(url.pathname, /^\/directions\/v5\/mapbox\/driving\//);
+    assert.match(url.pathname, /^\/directions\/v5\/mapbox\/driving-traffic\//);
     assert.equal(url.searchParams.get('access_token'), 'pk.test-token');
     assert.equal(url.searchParams.get('annotations'), 'distance,duration');
+    assert.equal(url.searchParams.get('depart_at'), '2026-11-25T16:30:00Z');
     return Response.json({
       code: 'Ok',
       routes: [{
@@ -137,7 +138,7 @@ test('Mapbox Directions provides road details for an automatic fare', async (tes
       }],
     });
   });
-  const result = await routeMeter(findTrip(78, 81)!, { mapboxToken: 'pk.test-token' });
+  const result = await routeMeter(findTrip(78, 81)!, { mapboxToken: 'pk.test-token' }, Date.parse('2026-11-25T16:30:00Z')+321);
   assert.equal(result.minutes, 8);
   assert.equal(result.slowMinutes, 3);
   assert.equal(result.milesAbove12mph, 3000 / 1609.344);

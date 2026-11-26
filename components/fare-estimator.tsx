@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import zones from '@/data/zones.json';
 import { fareSource } from '@/lib/fares';
-import type { TripQuote } from '@/lib/trip-fare';
+import { tripHorizons } from '@/lib/horizons';
+import type { PlannedTrip } from '@/lib/trip-planning';
+import type { WeatherHour } from '@/lib/weather';
 
 const orderedZones = [...zones].sort((a, b) => a.name.localeCompare(b.name));
 const boroughs = [...new Set(orderedZones.map(zone => zone.borough))].sort();
@@ -30,8 +32,9 @@ export default function FareEstimator() {
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
   const [retry, setRetry] = useState(0);
-  const [quote, setQuote] = useState<{key: string; result?: TripQuote; error?: string} | null>(null);
-  const key = pickup && dropoff ? `${pickup}:${dropoff}:${retry}` : '';
+  const [horizon,setHorizon] = useState(1);
+  const [quote, setQuote] = useState<{key: string; result?: PlannedTrip; error?: string} | null>(null);
+  const key = pickup && dropoff ? `${pickup}:${dropoff}:${horizon}:${retry}` : '';
   const current = key && quote?.key === key ? quote : null;
   const result = current?.result;
   const error = current?.error;
@@ -40,12 +43,12 @@ export default function FareEstimator() {
   useEffect(() => {
     if (!key) return;
     const controller = new AbortController();
-    const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(12000)]);
+    const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(20000)]);
     async function loadQuote() {
       try {
         const response = await fetch('/api/fare', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pickup: Number(pickup), dropoff: Number(dropoff) }), signal,
+          body: JSON.stringify({ pickup: Number(pickup), dropoff: Number(dropoff), horizon }), signal,
         });
         const data = await response.json();
         if (!controller.signal.aborted) {
@@ -57,13 +60,13 @@ export default function FareEstimator() {
     }
     void loadQuote();
     return () => controller.abort();
-  }, [pickup, dropoff, key]);
+  }, [pickup, dropoff, horizon, key]);
 
   return <section className="panel fare-panel">
     <div className="panel-heading">
       <div>
         <h2>Estimate your yellow taxi fare</h2>
-        <p>Choose two taxi zones to see the estimated fare for a trip leaving now.</p>
+        <p>Choose your route and departure time to compare traffic, weather and estimated cost.</p>
       </div>
     </div>
     <div className="fare-layout trip-layout">
@@ -78,13 +81,30 @@ export default function FareEstimator() {
             <ZoneOptions allowNewark />
           </select>
         </label>
+        <fieldset className="trip-departure">
+          <legend>Departure time</legend>
+          <div className="trip-horizons" role="group" aria-label="Departure time">
+            {[0,...tripHorizons].map(hours=><button type="button" key={hours} aria-pressed={horizon===hours}
+              className={horizon===hours?'active':''} onClick={()=>setHorizon(hours)}>
+              {hours===0?'Leaving now':`${hours} ${hours===1?'hour':'hours'} ahead`}
+            </button>)}
+          </div>
+          <p>Changing departure refreshes this route's fare and hourly weather forecast.</p>
+        </fieldset>
       </div>
       <div className="fare-total trip-total" aria-live="polite" aria-busy={loading}>
         {result ? <>
-          <span>ESTIMATED FARE</span>
-          <strong>{currency.format(result.total)}{result.maximum > result.total && <>–{currency.format(result.maximum)}</>}</strong>
-          <p>Leaving now · {nyTime.format(new Date(result.departure))}</p>
+          <span>TRIP PLANNING ESTIMATE</span>
+          <strong>{currency.format(result.planningMinimum)}{result.planningMaximum > result.planningMinimum && <>–{currency.format(result.planningMaximum)}</>}</strong>
+          <p>{horizon===0?'Leaving now':`Leaving in ${horizon} ${horizon===1?'hour':'hours'}`} · {nyTime.format(new Date(result.departure))}</p>
           {result.route && <p>{result.route.miles.toFixed(1)} mi · about {Math.round(result.route.minutes)} min between zone centers</p>}
+          {result.route?.traffic==='static'&&<p>Static route estimate; departure traffic prediction is unavailable.</p>}
+          {result.weatherAdjustment.state==='applied'&&<p className="weather-price-note">
+            Weather sensitivity: {currency.format(result.weatherAdjustment.fareMinimum!)}–{currency.format(result.weatherAdjustment.fareMaximum!)}
+            {' · '}{Math.round(result.weatherAdjustment.minutesMinimum!)}–{Math.round(result.weatherAdjustment.minutesMaximum!)} min.
+            {result.basis==='flat'?' The flat fare is unchanged by modeled weather delay.':' The planning range includes possible extra slow travel time.'}
+          </p>}
+          <p>Traffic-only fare: {currency.format(result.total)}{result.maximum>result.total&&<>–{currency.format(result.maximum)}</>}. Breakdown below.</p>
           <div className="fare-breakdown">
             {result.breakdown.map(charge => <div key={charge.label}><span>{charge.label}</span><b>{currency.format(charge.amount)}</b></div>)}
             {result.maximum > result.total && <div><span>Possible Manhattan congestion charges</span><b>up to {currency.format(result.maximum - result.total)}</b></div>}
@@ -92,12 +112,30 @@ export default function FareEstimator() {
           <p>Before tip. Actual traffic, addresses and route changes can affect the final fare.</p>
           {result.route && <p>Includes congestion charges and toll crossings detected on the estimated route.</p>}
           {!result.route && <p>Road routing is unavailable. Bridge and tunnel tolls are excluded.</p>}
-        </> : loading ? <p>Checking the route and charges…</p> : error ? <>
+        </> : loading ? <p>Checking departure traffic, weather and charges…</p> : error ? <>
           <p role="alert">{error}</p>
           {pickup !== dropoff && <button className="button secondary" type="button" onClick={() => setRetry(value => value + 1)}>Try again</button>}
         </> : <p>Select a pickup and drop-off location to see your estimate.</p>}
         <a href={fareSource} target="_blank" rel="noreferrer">Official TLC fare rules <ArrowUpRight size={14} /></a>
       </div>
     </div>
+    {result&&<section className="trip-weather" aria-labelledby="trip-weather-title">
+      <div><h3 id="trip-weather-title">Weather at departure</h3><p>Hourly forecast for {nyTime.format(new Date(result.departure))}.</p></div>
+      <div className="trip-weather-grid"><WeatherCard label="Pickup" weather={result.weather.pickup}/><WeatherCard label="Drop-off" weather={result.weather.dropoff}/></div>
+      <p className="weather-method">{result.weatherAdjustment.state==='unavailable'?'A complete weather-based adjustment is unavailable; the estimate uses the route and published fares.':
+        result.weatherAdjustment.state==='unsupported'?'These conditions fall outside the weather sensitivity model; the estimate uses the route and published fares.':
+        result.weatherAdjustment.state==='dry'?'No rain, snow or fog adjustment is applied for this departure.':'The weather range is a planning scenario, not a calibrated NYC fare prediction. Traffic may already reflect weather.'}
+        {' '}Weather affects the modeled travel time; there is no weather surcharge. Temperature and wind are shown for context. Conditions between zone centers may differ.</p>
+      <div className="weather-sources"><a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Weather: Open-Meteo ↗</a><a href={result.weatherAdjustment.source} target="_blank" rel="noreferrer">Weather model basis: FHWA ↗</a></div>
+    </section>}
   </section>;
+}
+
+function WeatherCard({label,weather}:{label:string;weather:WeatherHour|null}) {
+  return <div className="trip-weather-card"><h4>{label}{weather&&<> · {weather.zone}</>}</h4>
+    {weather?<><strong>{weather.condition} · {Math.round(weather.temperatureC)}°C</strong>
+      <p>Precipitation {weather.precipitationMm.toFixed(1)} mm · Snow {weather.snowfallCm.toFixed(1)} cm · Wind {Math.round(weather.windKph)} km/h</p>
+      <small>Forecast hour {nyTime.format(new Date(weather.at))} · retrieved {nyTime.format(new Date(weather.fetchedAt))}</small></>
+      :<p>Weather forecast unavailable for this location and hour.</p>}
+  </div>;
 }

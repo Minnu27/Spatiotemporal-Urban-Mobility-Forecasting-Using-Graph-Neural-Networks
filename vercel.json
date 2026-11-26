@@ -11,7 +11,7 @@
       "maxDuration": 30
     },
     "app/api/fare/route.ts": {
-      "maxDuration": 15
+      "maxDuration": 30
     }
   },
   "installCommand": "ONNXRUNTIME_NODE_INSTALL=skip npm ci",

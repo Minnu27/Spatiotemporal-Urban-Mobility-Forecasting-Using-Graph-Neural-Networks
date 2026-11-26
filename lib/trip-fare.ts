@@ -51,6 +51,12 @@ export function usesJfkFlatRate({ from, to }: NonNullable<ReturnType<typeof find
 }
 
 type RoutingProvider = { osrmUrl: string } | { mapboxToken: string };
+export type RouteEstimate = z.infer<typeof meterInputs> & {
+  miles:number; minutes:number; south96?:boolean; south60?:boolean;
+  steps:{name:string;geometry:{coordinates:[number,number][]}}[];
+  segments?:{meters:number;seconds:number}[];
+  traffic?:'departure-time'|'static';
+};
 
 export function routingProvider(): RoutingProvider | null {
   const osrmUrl = process.env.ROUTING_SERVICE_URL?.trim();
@@ -59,32 +65,40 @@ export function routingProvider(): RoutingProvider | null {
   return mapboxToken ? { mapboxToken } : null;
 }
 
-export async function routeMeter({ from, to }: NonNullable<ReturnType<typeof findTrip>>, provider: RoutingProvider) {
+export function segmentMeter(segments:{meters:number;seconds:number}[]) {
+  let fastMeters=0,slowSeconds=0;
+  for(const {meters,seconds} of segments){
+    if(!Number.isFinite(meters)||!Number.isFinite(seconds)||meters<0||seconds<0||(meters>0&&seconds===0))throw Error('Invalid route segment');
+    if(seconds>0&&meters>=seconds*(12*1609.344/3600))fastMeters+=meters;
+    else slowSeconds+=seconds;
+  }
+  return meterInputs.parse({milesAbove12mph:fastMeters/1609.344,slowMinutes:slowSeconds/60});
+}
+
+export async function routeMeter({ from, to }: NonNullable<ReturnType<typeof findTrip>>, provider: RoutingProvider, departure=Date.now()):Promise<RouteEstimate> {
   const points = [from, to].map(z => `${z.longitude},${z.latitude}`).join(';');
   const routeUrl = 'osrmUrl' in provider
     ? new URL(`${serverUrl(provider.osrmUrl)}/route/v1/driving/${points}`)
-    : new URL(`https://api.mapbox.com/directions/v5/mapbox/driving/${points}`);
+    : new URL(`https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${points}`);
   routeUrl.searchParams.set('overview', 'full');
   routeUrl.searchParams.set('geometries', 'geojson');
   routeUrl.searchParams.set('steps', 'true');
   routeUrl.searchParams.set('annotations', 'distance,duration');
-  if ('mapboxToken' in provider) routeUrl.searchParams.set('access_token', provider.mapboxToken);
+  if ('mapboxToken' in provider) {
+    routeUrl.searchParams.set('access_token', provider.mapboxToken);
+    routeUrl.searchParams.set('depart_at',new Date(Math.floor(departure/1000)*1000).toISOString().replace('.000Z','Z'));
+  }
   const { routes: [route] } = routeSchema.parse(await fetchJson(routeUrl.toString(), {}, 2_000_000, 8000));
   const { distance, duration } = route.legs[0].annotation;
   if (distance.length !== duration.length) throw new Error('Invalid routing annotations');
-  let fastMeters = 0;
-  let slowSeconds = 0;
-  distance.forEach((meters, index) => {
-    const seconds = duration[index];
-    if (seconds > 0 && meters >= seconds * (12 * 1609.344 / 3600)) fastMeters += meters;
-    else slowSeconds += seconds;
-  });
+  const segments=distance.map((meters,index)=>({meters,seconds:duration[index]}));
   return {
-    ...meterInputs.parse({ milesAbove12mph: fastMeters / 1609.344, slowMinutes: slowSeconds / 60 }),
+    ...segmentMeter(segments),segments,
     miles: route.distance / 1609.344,
     minutes: route.duration / 60,
     ...congestionCharges(route.geometry.coordinates),
     steps: route.legs[0].steps,
+    traffic:'mapboxToken' in provider?'departure-time':'static',
   };
 }
 
@@ -129,7 +143,7 @@ export function calculateQuote(
     departure: departure.toISOString(),
     basis: jfkFlat ? 'flat' as const : input.manual ? 'manual' as const : 'route' as const,
     tolls: input.tolls, newarkDropoff: rates.newarkDropoff,
-    route: route && { miles: route.miles, minutes: route.minutes },
+    route: route && { miles: route.miles, minutes: route.minutes, traffic:route.traffic ?? 'static' },
   };
 }
 
