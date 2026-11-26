@@ -2,7 +2,7 @@
 
 A Next.js dashboard for NYC taxi-demand research, official subway arrivals/service alerts, construction permits, transparent taxi-fare estimation, and a Qwen RAG assistant. Vercel hosts the web frontend and API routes; the bundled Colab model runs current-date demand estimates through ONNX Runtime using a historical reference profile and recent weather. No observed current pickups are connected. A separate trusted service can supply observed live forecasts.
 
-**Research status:** the original notebook has been corrected for future-data leakage and its outputs cleared. Current notebook configuration is extracted into `data/research.json`; pre-correction scores are preserved in `data/research-archive.json` and are not independently reproduced. Spatial LightGBM outperformed the GNN in those scores. See [the audit](docs/AUDIT.md).
+**Research status:** the newly supplied Colab notebook includes saved five-horizon results using seeded held-out months of 2025. Residual Graph (OD + correlation) is the notebook’s validation-selected GNN. Its reported all-zone MAE is lower than spatial LightGBM and GRU at all five horizons, while distance + OD leads the 12/24-hour test MAE. These are saved outputs, not an independent rerun or current-demand accuracy. See [the research provenance](docs/RESEARCH.md).
 
 ## Run the dashboard
 
@@ -30,7 +30,9 @@ npx playwright test
 
 ## Research section
 
-The Research page follows the current GitHub notebook: 12-hour inputs, 1/3/6-hour evaluation, chronological Jan–Sep/Oct/Nov–Dec splits, 14 context features and four graph constructions. It distinguishes this configuration from the 168-hour, five-horizon ONNX export. With cleared notebook outputs, current scores and the model winner remain unavailable; previous scores live in a collapsed archive. See [docs/RESEARCH.md](docs/RESEARCH.md).
+Research now displays 270 saved test-metric rows for 18 models, five horizons and all/active/event subsets. Controls select horizon, subset and MAE/RMSE/WMAPE. It includes current graph diagnostics, +1-hour borough/condition breakdowns and the actual seeded month split. Base GRU/GCN windows use 12 hours; the selected residual model and website export use 168 hours. The matrix total of 48,629,564 is reported after the notebook's gap/DST processing, not a fresh raw-trip recount.
+
+The readable notebook preserves all code, logs and 78 result tables. The complete original (including figures/maps/widget state) is preserved losslessly in `notebooks/original/Spatiotemporal_Urban_Mobility_Forcasting_GNNs.ipynb.xz`, with hashes in `data/notebook-source.json`. Earlier pre-correction scores remain in `data/research-archive.json`. See [docs/RESEARCH.md](docs/RESEARCH.md).
 
 ```bash
 python scripts/sync-research.py --check
@@ -45,7 +47,7 @@ For the Cloudflare free-allowance setup and exact places to paste each credentia
 
 Set `QWEN_API_KEY`, `QWEN_BASE_URL`, `QWEN_MODEL` and `EMBEDDING_MODEL` using the Cloudflare examples in `.env.example`. Tokens stay server-only. Other OpenAI-compatible hosts can be configured, including the original Alibaba endpoint. Provider availability and allowances depend on the account. Never use `NEXT_PUBLIC_` for a server credential.
 
-Public retrieval and generation require shared limits: Supabase service key plus a rate-limit salt, or Upstash. Private upload/search/chat/history routes use atomic account quotas in Postgres. Missing limits fail closed. Public methodology and active alerts use lexical retrieval; personal text/Markdown uses persistent embeddings plus full-text retrieval. Structured demand values come directly from the forecast API with mode, source and target hour.
+Public retrieval and generation require shared limits: Supabase service key plus a rate-limit salt, or Upstash. Private upload/search/chat/history routes use atomic account quotas in Postgres. Missing limits fail closed. Public methodology, per-model benchmark evidence and active alerts use lexical retrieval; personal text/Markdown uses persistent embeddings plus full-text retrieval. Structured demand values come directly from the forecast API with mode, source and target hour.
 
 Open `/workspace` for Supabase sign-in, approved membership, private documents, semantic retrieval, opt-in history, export and deletion. Personal data lives in a private bucket and owner-scoped Postgres tables with RLS. No personal documents or chats belong in this public Git repository. Follow [the complete setup guide](docs/SETUP.md) and [the privacy design](docs/RAG_STORAGE_AND_PRIVACY.md).
 

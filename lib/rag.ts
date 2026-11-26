@@ -32,7 +32,18 @@ export function corpus(alerts: AlertResult): Document[] {
       recentSubwayReports:alerts.incidents.filter(i=>i.kind==='subway').slice(0,8).map(i=>({title:i.title,description:i.description.slice(0,450),routes:i.routes})),
       plannedRoadWorkPermits:alerts.incidents.filter(i=>i.kind==='road').length,qualification:'Counts cover returned feed records. Missing reports do not establish normal service. Work permits do not confirm a road closure.'}),
     url:'/api/alerts',kind:'alert'}]:[];
-  return [...knowledge,...liveSummary, {id:'research-status',title:'Research report status',text:JSON.stringify({status:research.status,notebook:research.notebook,experiment:research.experiment,results:research.results,deployment:research.deployment,limitations:research.limitations}),url:knowledge[0].url,kind:'research'},
+  const notebookUrl=`https://github.com/Minnu27/Spatiotemporal-Urban-Mobility-Forecasting-Using-Graph-Neural-Networks/blob/${research.notebook.commit}/${encodeURIComponent(research.notebook.path)}`;
+  const researchResults=research.experiment.models.flatMap(model=>['all','active','events'].map(subset=>({
+    id:'research-result:'+model+':'+subset,title:`${model} · ${subset} held-out test results`,kind:'research',url:notebookUrl,
+    text:JSON.stringify({model,subset,testMonths:'February and September 2025',reportedPrecisionDecimals:3,independentlyReproduced:false,
+      results:research.results.rows.filter(row=>row.model===model&&row.subset===subset).map(({horizon,mae,rmse,wmape})=>({horizon,mae,rmse,wmape})),
+      qualification:'Historical seeded-month benchmark. WMAPE is a ratio. Not current observed demand or prospective deployment accuracy.'})
+  })));
+  return [...knowledge,...liveSummary, {id:'research-status',title:'New notebook research run and selection status',text:JSON.stringify({status:research.status,dataset:research.dataset,
+    inputHours:research.experiment.inputHours,selectedModelInputHours:research.experiment.selectedModelInputHours,evaluationHorizons:research.experiment.evaluationHorizons,
+    splitMethod:research.experiment.splitMethod,splitSeed:research.experiment.splitSeed,splits:research.experiment.splits,
+    selectedGnn:research.results.selectedGnn,selectedBaseline:research.results.selectedBaseline,winnerByHorizon:research.results.winnerByHorizon,
+    rowCount:research.results.rows.length,limitations:research.limitations.slice(0,4)}),url:notebookUrl,kind:'research'},...researchResults,
     ...alerts.feeds.map((f,i)=>({id:`feed-${i}`,title:`${f.source} feed status`,text:`${f.state}. ${f.detail} Last fetched ${f.fetchedAt}.`,kind:'status',url:f.source==='MTA'?'https://www.mta.info/alerts':'https://data.cityofnewyork.us/'})),
     ...alerts.incidents.map(i=>({id:i.id,title:i.title,text:`Source: ${i.source}. ${i.description} Routes: ${i.routes.join(', ')}. Borough: ${i.borough}. Starts: ${i.start ?? 'not specified'}. Ends: ${i.end ?? 'not specified'}. Fetched: ${i.fetchedAt}.`,url:i.url,kind:'alert'}))];
 }

@@ -1,54 +1,84 @@
 {
-  "status": "awaiting_notebook_rerun",
+  "status": "saved_notebook_benchmark",
   "independentlyReproduced": false,
   "notebook": {
     "path": "Spatiotemporal_Urban_Mobility_Forecasting_System_using_Graph_Neural_Networks_(GNNs).ipynb",
-    "commit": "6b3700581eda1591be965bb13f2c5cca39fdf8f2",
-    "gitBlob": "e9eb6e0cbb94d5ce7fda281c48aa311641b08708",
-    "sha256": "65cfe93f2b491f2b7bcd3131eee5f71fc81dc66b67ae5762170fb0a751b62653",
-    "cellCount": 48,
-    "codeCells": 38,
-    "cellsWithOutputs": 0,
+    "commit": "6e7d170e12b65632adc04714d63c6e9b7dfc76b7",
+    "sha256": "393b944645ecc0b1d963a221880655a6dc3c90fdce2df411ab96178fba8a650a",
+    "originalSha256": "f91d8494a1499a09737d8fdd45132d2fd133306ecefd806bd63c761943dc5f67",
+    "archivePath": "notebooks/original/Spatiotemporal_Urban_Mobility_Forcasting_GNNs.ipynb.xz",
+    "archiveSha256": "5e1d51b2d057ec6c261f7f220357618b9c25a111806558552d816fc420d2ec53",
+    "cellCount": 52,
+    "codeCells": 39,
+    "cellsWithOutputs": 37,
     "executedCodeCells": 0,
     "configurationCellIndex": 36,
     "featureCellIndex": 33,
-    "graphCellIndex": 34
+    "graphCellIndex": 34,
+    "resultCellIndex": 44,
+    "summaryCellIndex": 47
   },
   "dataset": {
     "year": 2025,
     "period": "January–December 2025",
     "expectedLocalClockHours": 8760,
     "geographicZones": 263,
-    "source": "NYC TLC yellow taxi monthly parquet files",
-    "countsVerifiedInThisRun": false
+    "reportedCleanedMatrixTotal": 48629564,
+    "activeZones": 156,
+    "source": "Original NYC TLC yellow taxi monthly parquet files",
+    "countsVerifiedInThisRun": false,
+    "qualification": "Saved cleaned-matrix total includes the notebook’s gap/DST processing; not a fresh recount of raw trip records."
   },
   "experiment": {
     "inputHours": 12,
-    "maximumHorizon": 6,
+    "selectedModelInputHours": 168,
+    "maximumHorizon": 24,
     "evaluationHorizons": [
       1,
       3,
-      6
+      6,
+      12,
+      24
     ],
     "minimumHistoryHours": 168,
+    "splitMethod": "seeded_whole_month",
+    "splitSeed": 42,
     "splits": [
       {
         "name": "Training",
-        "period": "January–September 2025",
-        "start": "2025-01-01",
-        "endExclusive": "2025-10-01"
+        "key": "train",
+        "months": [
+          1,
+          3,
+          4,
+          6,
+          7,
+          8,
+          10,
+          12
+        ],
+        "period": "Jan, Mar, Apr, Jun, Jul, Aug, Oct, Dec 2025",
+        "origins": 4376
       },
       {
         "name": "Validation",
-        "period": "October 2025",
-        "start": "2025-10-01",
-        "endExclusive": "2025-11-01"
+        "key": "val",
+        "months": [
+          5,
+          11
+        ],
+        "period": "May, Nov 2025",
+        "origins": 1082
       },
       {
         "name": "Test",
-        "period": "November–December 2025",
-        "start": "2025-11-01",
-        "endExclusive": "2026-01-01"
+        "key": "test",
+        "months": [
+          2,
+          9
+        ],
+        "period": "Feb, Sep 2025",
+        "origins": 1010
       }
     ],
     "contextFeatures": [
@@ -77,56 +107,3375 @@
       "Active zones (training mean ≥ 1 pickup/hour)",
       "Flagged event cells"
     ],
-    "selection": "Lowest mean validation MAE across evaluated horizons; seed and feature ablations excluded from main selection.",
+    "selection": "Notebook reports the GNN selected by lowest mean validation MAE across all five horizons, excluding random-control GCN and bracket-tagged variants. Test-set leaders are reported separately.",
     "seeds": [
-      42,
-      1,
-      2
+      42
     ],
-    "ablations": [
-      "No weather",
-      "No holiday flags",
-      "No context features"
-    ],
+    "ablations": [],
+    "robustnessMessage": "The supplied saved outputs do not contain a multi-seed robustness or context-ablation result table.",
     "models": [
-      "Persistence, daily/weekly seasonal and historical-average baselines",
-      "LightGBM",
-      "LightGBM with spatial lags",
-      "GRU without graph",
-      "GCN-GRU across four graphs and a random control",
-      "Graph WaveNet with fixed and adaptive supports"
-    ]
+      "GCN-GRU (OD flow graph)",
+      "GCN-GRU (contiguity graph)",
+      "GCN-GRU (correlation graph)",
+      "GCN-GRU (distance graph)",
+      "GCN-GRU (random (control) graph)",
+      "GRU (no graph)",
+      "Graph WaveNet (adaptive only)",
+      "Graph WaveNet (distance + adaptive)",
+      "Historical average (hour-of-week)",
+      "LightGBM (no spatial features)",
+      "LightGBM + spatial lags",
+      "Persistence (last hour)",
+      "Residual Graph (OD + correlation)",
+      "Residual Graph (distance + OD)",
+      "Seasonal naive (same hour last week)",
+      "Seasonal naive (same hour yesterday)",
+      "Seasonal residual (no graph)",
+      "Weekly moving average (up to 4 same-month weeks)"
+    ],
+    "monthBoundaryRule": "All 168 history hours and 24 target hours remain within a single assigned calendar month."
   },
   "graphs": [
     {
       "name": "Contiguity",
-      "construction": "50-foot buffered polygon intersections; isolated zones linked to three nearest neighbors.",
+      "construction": "50-foot buffered polygon intersections; isolated zones connected to three nearest neighbors.",
       "fit": "TLC zone geometry",
-      "cellIndex": 27
+      "edges": 672,
+      "meanDegree": 5.1,
+      "isolated": 0,
+      "meanEdgeMiles": 1.22,
+      "overlapWithContiguity": 1.0,
+      "cellIndex": 34,
+      "outputIndex": 1
     },
     {
       "name": "Distance (kNN)",
       "construction": "Gaussian distance weights over eight nearest zones; symmetrized.",
       "fit": "TLC zone geometry",
-      "cellIndex": 34
+      "edges": 1254,
+      "meanDegree": 9.5,
+      "isolated": 0,
+      "meanEdgeMiles": 1.52,
+      "overlapWithContiguity": 0.494,
+      "cellIndex": 34,
+      "outputIndex": 1
     },
     {
       "name": "OD flow",
-      "construction": "Log two-way trip flow; ten strongest positive links per zone; symmetrized.",
-      "fit": "January–September training trips only",
-      "cellIndex": 34
+      "construction": "Log two-way flow, ten strongest positive links per zone; symmetrized.",
+      "fit": "Assigned training months only",
+      "edges": 2320,
+      "meanDegree": 17.6,
+      "isolated": 3,
+      "meanEdgeMiles": 4.59,
+      "overlapWithContiguity": 0.17,
+      "cellIndex": 34,
+      "outputIndex": 1
     },
     {
       "name": "Correlation",
-      "construction": "Positive residual log-demand correlation after removing hour-of-week means; ten strongest links; symmetrized.",
-      "fit": "January–September training demand only",
-      "cellIndex": 34
+      "construction": "Positive residual log-demand correlation after removing training hour-of-week means; ten strongest links.",
+      "fit": "Assigned training months only",
+      "edges": 2421,
+      "meanDegree": 18.4,
+      "isolated": 3,
+      "meanEdgeMiles": 6.46,
+      "overlapWithContiguity": 0.105,
+      "cellIndex": 34,
+      "outputIndex": 1
     }
   ],
   "results": {
-    "rows": [],
-    "winner": null,
-    "message": "The current notebook has no saved evaluation outputs or checked-in results CSV. A corrected rerun is required before publishing new scores or a model winner."
+    "rows": [
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 3.301,
+        "rmse": 9.824,
+        "wmape": 0.153,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 3.466,
+        "rmse": 10.409,
+        "wmape": 0.161,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 3.518,
+        "rmse": 10.687,
+        "wmape": 0.164,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 3.593,
+        "rmse": 11.089,
+        "wmape": 0.167,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 3.59,
+        "rmse": 11.185,
+        "wmape": 0.166,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 3.353,
+        "rmse": 10.097,
+        "wmape": 0.156,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 3.505,
+        "rmse": 10.723,
+        "wmape": 0.163,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 3.549,
+        "rmse": 10.763,
+        "wmape": 0.165,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 3.554,
+        "rmse": 10.889,
+        "wmape": 0.165,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 3.576,
+        "rmse": 11.064,
+        "wmape": 0.165,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 3.4,
+        "rmse": 10.182,
+        "wmape": 0.158,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 3.515,
+        "rmse": 10.633,
+        "wmape": 0.164,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 3.584,
+        "rmse": 10.862,
+        "wmape": 0.167,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 3.658,
+        "rmse": 11.278,
+        "wmape": 0.17,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 3.612,
+        "rmse": 11.08,
+        "wmape": 0.167,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 3.412,
+        "rmse": 9.976,
+        "wmape": 0.158,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 3.877,
+        "rmse": 11.875,
+        "wmape": 0.18,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 3.986,
+        "rmse": 12.259,
+        "wmape": 0.186,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 4.036,
+        "rmse": 12.363,
+        "wmape": 0.187,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 4.03,
+        "rmse": 12.392,
+        "wmape": 0.186,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 3.492,
+        "rmse": 10.33,
+        "wmape": 0.162,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 3.851,
+        "rmse": 11.644,
+        "wmape": 0.179,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 3.992,
+        "rmse": 12.329,
+        "wmape": 0.186,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 4.029,
+        "rmse": 12.322,
+        "wmape": 0.187,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 4.038,
+        "rmse": 12.414,
+        "wmape": 0.186,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 3.806,
+        "rmse": 11.688,
+        "wmape": 0.177,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 4.098,
+        "rmse": 12.771,
+        "wmape": 0.191,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 4.196,
+        "rmse": 13.136,
+        "wmape": 0.195,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 4.264,
+        "rmse": 13.577,
+        "wmape": 0.198,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 4.146,
+        "rmse": 13.459,
+        "wmape": 0.191,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 3.84,
+        "rmse": 11.956,
+        "wmape": 0.178,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 4.054,
+        "rmse": 12.824,
+        "wmape": 0.189,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 4.207,
+        "rmse": 13.297,
+        "wmape": 0.196,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 4.255,
+        "rmse": 13.561,
+        "wmape": 0.197,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 4.191,
+        "rmse": 13.669,
+        "wmape": 0.194,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 4.115,
+        "rmse": 12.89,
+        "wmape": 0.191,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 4.342,
+        "rmse": 13.622,
+        "wmape": 0.202,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 4.354,
+        "rmse": 13.569,
+        "wmape": 0.203,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 4.368,
+        "rmse": 13.944,
+        "wmape": 0.203,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 4.394,
+        "rmse": 14.278,
+        "wmape": 0.203,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 4.125,
+        "rmse": 13.316,
+        "wmape": 0.191,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 4.276,
+        "rmse": 13.764,
+        "wmape": 0.199,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 4.353,
+        "rmse": 13.925,
+        "wmape": 0.203,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 4.333,
+        "rmse": 13.797,
+        "wmape": 0.201,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 4.443,
+        "rmse": 14.707,
+        "wmape": 0.205,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 4.161,
+        "rmse": 13.165,
+        "wmape": 0.193,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 4.279,
+        "rmse": 13.59,
+        "wmape": 0.199,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 4.375,
+        "rmse": 13.994,
+        "wmape": 0.204,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 4.433,
+        "rmse": 14.38,
+        "wmape": 0.206,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 4.391,
+        "rmse": 14.471,
+        "wmape": 0.203,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 4.24,
+        "rmse": 13.595,
+        "wmape": 0.197,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 4.412,
+        "rmse": 14.093,
+        "wmape": 0.205,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 4.461,
+        "rmse": 14.174,
+        "wmape": 0.208,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 4.501,
+        "rmse": 14.657,
+        "wmape": 0.209,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 4.562,
+        "rmse": 15.089,
+        "wmape": 0.211,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 4.286,
+        "rmse": 13.94,
+        "wmape": 0.199,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 4.428,
+        "rmse": 14.172,
+        "wmape": 0.206,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 4.528,
+        "rmse": 14.435,
+        "wmape": 0.211,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 4.487,
+        "rmse": 14.441,
+        "wmape": 0.208,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 4.508,
+        "rmse": 14.9,
+        "wmape": 0.208,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 4.287,
+        "rmse": 13.173,
+        "wmape": 0.199,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 4.271,
+        "rmse": 13.115,
+        "wmape": 0.199,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 4.264,
+        "rmse": 13.096,
+        "wmape": 0.199,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 4.266,
+        "rmse": 13.102,
+        "wmape": 0.198,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 4.27,
+        "rmse": 13.095,
+        "wmape": 0.197,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 4.287,
+        "rmse": 13.803,
+        "wmape": 0.199,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 4.432,
+        "rmse": 14.129,
+        "wmape": 0.206,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 4.549,
+        "rmse": 14.614,
+        "wmape": 0.212,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 4.581,
+        "rmse": 15.08,
+        "wmape": 0.213,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 4.529,
+        "rmse": 14.912,
+        "wmape": 0.209,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 4.625,
+        "rmse": 14.697,
+        "wmape": 0.215,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 4.604,
+        "rmse": 14.658,
+        "wmape": 0.214,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 4.591,
+        "rmse": 14.641,
+        "wmape": 0.214,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 4.555,
+        "rmse": 14.471,
+        "wmape": 0.211,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 4.462,
+        "rmse": 13.966,
+        "wmape": 0.206,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 4.99,
+        "rmse": 15.715,
+        "wmape": 0.231,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 4.97,
+        "rmse": 15.678,
+        "wmape": 0.231,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 4.958,
+        "rmse": 15.662,
+        "wmape": 0.231,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 4.941,
+        "rmse": 15.544,
+        "wmape": 0.229,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 4.907,
+        "rmse": 15.444,
+        "wmape": 0.227,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 5.903,
+        "rmse": 17.709,
+        "wmape": 0.274,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 11.682,
+        "rmse": 36.71,
+        "wmape": 0.543,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 18.432,
+        "rmse": 55.267,
+        "wmape": 0.858,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 23.425,
+        "rmse": 67.311,
+        "wmape": 1.087,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 6.822,
+        "rmse": 24.238,
+        "wmape": 0.315,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 1,
+        "mae": 7.023,
+        "rmse": 25.148,
+        "wmape": 0.326,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 3,
+        "mae": 6.94,
+        "rmse": 24.671,
+        "wmape": 0.323,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 6,
+        "mae": 6.887,
+        "rmse": 24.442,
+        "wmape": 0.321,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 12,
+        "mae": 6.857,
+        "rmse": 24.367,
+        "wmape": 0.318,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "all",
+        "horizon": 24,
+        "mae": 6.822,
+        "rmse": 24.238,
+        "wmape": 0.315,
+        "cellIndex": 44,
+        "outputIndex": 23
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 5.324,
+        "rmse": 12.741,
+        "wmape": 0.148,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 5.601,
+        "rmse": 13.5,
+        "wmape": 0.156,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 5.689,
+        "rmse": 13.861,
+        "wmape": 0.158,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 5.813,
+        "rmse": 14.384,
+        "wmape": 0.161,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 5.809,
+        "rmse": 14.508,
+        "wmape": 0.16,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 5.409,
+        "rmse": 13.095,
+        "wmape": 0.15,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 5.665,
+        "rmse": 13.909,
+        "wmape": 0.157,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 5.738,
+        "rmse": 13.961,
+        "wmape": 0.16,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 5.747,
+        "rmse": 14.124,
+        "wmape": 0.159,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 5.782,
+        "rmse": 14.352,
+        "wmape": 0.16,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 5.477,
+        "rmse": 12.94,
+        "wmape": 0.152,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 6.259,
+        "rmse": 15.407,
+        "wmape": 0.174,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 6.44,
+        "rmse": 15.906,
+        "wmape": 0.179,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 6.524,
+        "rmse": 16.041,
+        "wmape": 0.181,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 6.513,
+        "rmse": 16.079,
+        "wmape": 0.18,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 5.486,
+        "rmse": 13.205,
+        "wmape": 0.152,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 5.68,
+        "rmse": 13.792,
+        "wmape": 0.158,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 5.795,
+        "rmse": 14.089,
+        "wmape": 0.161,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 5.92,
+        "rmse": 14.63,
+        "wmape": 0.164,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 5.841,
+        "rmse": 14.373,
+        "wmape": 0.161,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 5.611,
+        "rmse": 13.401,
+        "wmape": 0.156,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 6.213,
+        "rmse": 15.106,
+        "wmape": 0.173,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 6.451,
+        "rmse": 15.997,
+        "wmape": 0.179,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 6.511,
+        "rmse": 15.988,
+        "wmape": 0.18,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 6.525,
+        "rmse": 16.107,
+        "wmape": 0.18,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 6.178,
+        "rmse": 15.161,
+        "wmape": 0.171,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 6.671,
+        "rmse": 16.568,
+        "wmape": 0.185,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 6.835,
+        "rmse": 17.043,
+        "wmape": 0.19,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 6.948,
+        "rmse": 17.616,
+        "wmape": 0.193,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 6.749,
+        "rmse": 17.462,
+        "wmape": 0.186,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 6.238,
+        "rmse": 15.51,
+        "wmape": 0.173,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 6.599,
+        "rmse": 16.638,
+        "wmape": 0.183,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 6.856,
+        "rmse": 17.252,
+        "wmape": 0.191,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 6.935,
+        "rmse": 17.595,
+        "wmape": 0.192,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 6.825,
+        "rmse": 17.736,
+        "wmape": 0.188,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 6.696,
+        "rmse": 16.723,
+        "wmape": 0.186,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 7.08,
+        "rmse": 17.675,
+        "wmape": 0.197,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 7.1,
+        "rmse": 17.605,
+        "wmape": 0.198,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 7.123,
+        "rmse": 18.092,
+        "wmape": 0.197,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 7.165,
+        "rmse": 18.526,
+        "wmape": 0.198,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 6.716,
+        "rmse": 17.276,
+        "wmape": 0.186,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 6.971,
+        "rmse": 17.859,
+        "wmape": 0.194,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 7.1,
+        "rmse": 18.068,
+        "wmape": 0.198,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 7.064,
+        "rmse": 17.901,
+        "wmape": 0.196,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 7.248,
+        "rmse": 19.084,
+        "wmape": 0.2,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 6.777,
+        "rmse": 17.081,
+        "wmape": 0.188,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 6.975,
+        "rmse": 17.632,
+        "wmape": 0.194,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 7.136,
+        "rmse": 18.157,
+        "wmape": 0.199,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 7.234,
+        "rmse": 18.66,
+        "wmape": 0.201,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 7.162,
+        "rmse": 18.777,
+        "wmape": 0.198,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 6.909,
+        "rmse": 17.639,
+        "wmape": 0.191,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 7.199,
+        "rmse": 18.287,
+        "wmape": 0.2,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 7.28,
+        "rmse": 18.392,
+        "wmape": 0.203,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 7.346,
+        "rmse": 19.02,
+        "wmape": 0.204,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 7.449,
+        "rmse": 19.581,
+        "wmape": 0.206,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 6.943,
+        "rmse": 17.093,
+        "wmape": 0.192,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 6.917,
+        "rmse": 17.017,
+        "wmape": 0.192,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 6.905,
+        "rmse": 16.994,
+        "wmape": 0.192,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 6.908,
+        "rmse": 17.0,
+        "wmape": 0.191,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 6.915,
+        "rmse": 16.991,
+        "wmape": 0.191,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 6.985,
+        "rmse": 17.91,
+        "wmape": 0.194,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 7.23,
+        "rmse": 18.332,
+        "wmape": 0.201,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 7.427,
+        "rmse": 18.963,
+        "wmape": 0.207,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 7.48,
+        "rmse": 19.568,
+        "wmape": 0.207,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 7.391,
+        "rmse": 19.351,
+        "wmape": 0.204,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 6.986,
+        "rmse": 18.088,
+        "wmape": 0.194,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 7.225,
+        "rmse": 18.389,
+        "wmape": 0.201,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 7.394,
+        "rmse": 18.731,
+        "wmape": 0.206,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 7.323,
+        "rmse": 18.739,
+        "wmape": 0.203,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 7.357,
+        "rmse": 19.335,
+        "wmape": 0.203,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 7.499,
+        "rmse": 19.069,
+        "wmape": 0.208,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 7.465,
+        "rmse": 19.018,
+        "wmape": 0.207,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 7.443,
+        "rmse": 18.995,
+        "wmape": 0.207,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 7.382,
+        "rmse": 18.775,
+        "wmape": 0.205,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 7.226,
+        "rmse": 18.118,
+        "wmape": 0.199,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 8.095,
+        "rmse": 20.387,
+        "wmape": 0.224,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 8.063,
+        "rmse": 20.34,
+        "wmape": 0.224,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 8.042,
+        "rmse": 20.319,
+        "wmape": 0.224,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 8.012,
+        "rmse": 20.165,
+        "wmape": 0.222,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 7.954,
+        "rmse": 20.035,
+        "wmape": 0.219,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 9.631,
+        "rmse": 22.98,
+        "wmape": 0.267,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 19.342,
+        "rmse": 47.658,
+        "wmape": 0.538,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 30.704,
+        "rmse": 71.756,
+        "wmape": 0.854,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 39.105,
+        "rmse": 87.396,
+        "wmape": 1.084,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 11.174,
+        "rmse": 31.46,
+        "wmape": 0.308,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 1,
+        "mae": 11.513,
+        "rmse": 32.642,
+        "wmape": 0.319,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 3,
+        "mae": 11.373,
+        "rmse": 32.022,
+        "wmape": 0.316,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 6,
+        "mae": 11.284,
+        "rmse": 31.725,
+        "wmape": 0.314,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 12,
+        "mae": 11.233,
+        "rmse": 31.629,
+        "wmape": 0.311,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "active",
+        "horizon": 24,
+        "mae": 11.174,
+        "rmse": 31.46,
+        "wmape": 0.308,
+        "cellIndex": 44,
+        "outputIndex": 25
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 33.676,
+        "rmse": 47.128,
+        "wmape": 0.593,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 45.595,
+        "rmse": 69.336,
+        "wmape": 0.803,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 37.405,
+        "rmse": 48.677,
+        "wmape": 0.659,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 51.162,
+        "rmse": 65.027,
+        "wmape": 0.901,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Persistence (last hour)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 55.667,
+        "rmse": 97.213,
+        "wmape": 0.964,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 41.979,
+        "rmse": 63.327,
+        "wmape": 0.74,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 68.551,
+        "rmse": 108.164,
+        "wmape": 1.208,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 78.365,
+        "rmse": 126.778,
+        "wmape": 1.381,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 83.114,
+        "rmse": 139.508,
+        "wmape": 1.464,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 84.51,
+        "rmse": 142.519,
+        "wmape": 1.464,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 42.114,
+        "rmse": 64.496,
+        "wmape": 0.742,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 73.238,
+        "rmse": 119.021,
+        "wmape": 1.29,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 78.007,
+        "rmse": 125.802,
+        "wmape": 1.374,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 79.399,
+        "rmse": 129.607,
+        "wmape": 1.399,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 83.108,
+        "rmse": 141.199,
+        "wmape": 1.44,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 57.865,
+        "rmse": 98.5,
+        "wmape": 1.02,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 57.865,
+        "rmse": 98.5,
+        "wmape": 1.02,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 57.865,
+        "rmse": 98.5,
+        "wmape": 1.02,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 57.865,
+        "rmse": 98.5,
+        "wmape": 1.02,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal naive (same hour yesterday)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 55.667,
+        "rmse": 97.213,
+        "wmape": 0.964,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 58.325,
+        "rmse": 79.739,
+        "wmape": 1.028,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 64.771,
+        "rmse": 88.76,
+        "wmape": 1.141,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 78.799,
+        "rmse": 117.322,
+        "wmape": 1.388,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 89.718,
+        "rmse": 155.255,
+        "wmape": 1.581,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GRU (no graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 84.592,
+        "rmse": 138.196,
+        "wmape": 1.465,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 58.784,
+        "rmse": 84.782,
+        "wmape": 1.036,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 72.872,
+        "rmse": 110.128,
+        "wmape": 1.284,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 83.737,
+        "rmse": 130.194,
+        "wmape": 1.475,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 96.264,
+        "rmse": 168.167,
+        "wmape": 1.696,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Graph WaveNet (adaptive only)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 86.52,
+        "rmse": 144.826,
+        "wmape": 1.499,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 63.011,
+        "rmse": 87.234,
+        "wmape": 1.11,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 79.315,
+        "rmse": 118.706,
+        "wmape": 1.397,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 85.152,
+        "rmse": 131.791,
+        "wmape": 1.5,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 99.92,
+        "rmse": 172.407,
+        "wmape": 1.76,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (random (control) graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 94.079,
+        "rmse": 163.49,
+        "wmape": 1.63,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 63.194,
+        "rmse": 89.896,
+        "wmape": 1.113,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 76.477,
+        "rmse": 114.76,
+        "wmape": 1.347,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 84.294,
+        "rmse": 131.927,
+        "wmape": 1.485,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 102.129,
+        "rmse": 184.227,
+        "wmape": 1.799,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 88.215,
+        "rmse": 151.905,
+        "wmape": 1.528,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 65.907,
+        "rmse": 94.18,
+        "wmape": 1.161,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 82.549,
+        "rmse": 129.574,
+        "wmape": 1.454,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 85.5,
+        "rmse": 136.886,
+        "wmape": 1.506,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 99.277,
+        "rmse": 170.937,
+        "wmape": 1.749,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 94.599,
+        "rmse": 166.359,
+        "wmape": 1.639,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 68.722,
+        "rmse": 97.663,
+        "wmape": 1.211,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 80.602,
+        "rmse": 120.888,
+        "wmape": 1.42,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 86.131,
+        "rmse": 131.693,
+        "wmape": 1.518,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 100.554,
+        "rmse": 169.906,
+        "wmape": 1.772,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (OD flow graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 90.542,
+        "rmse": 153.099,
+        "wmape": 1.569,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 68.768,
+        "rmse": 97.297,
+        "wmape": 1.212,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 82.583,
+        "rmse": 127.239,
+        "wmape": 1.455,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 86.514,
+        "rmse": 135.497,
+        "wmape": 1.524,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 104.7,
+        "rmse": 181.934,
+        "wmape": 1.845,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (correlation graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 91.544,
+        "rmse": 157.292,
+        "wmape": 1.586,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 69.615,
+        "rmse": 102.139,
+        "wmape": 1.227,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 81.607,
+        "rmse": 125.999,
+        "wmape": 1.438,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 87.383,
+        "rmse": 137.629,
+        "wmape": 1.54,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 101.997,
+        "rmse": 178.628,
+        "wmape": 1.797,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "GCN-GRU (contiguity graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 91.892,
+        "rmse": 158.54,
+        "wmape": 1.592,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 71.739,
+        "rmse": 111.792,
+        "wmape": 1.264,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 78.205,
+        "rmse": 122.626,
+        "wmape": 1.378,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 78.79,
+        "rmse": 124.425,
+        "wmape": 1.388,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 88.648,
+        "rmse": 151.187,
+        "wmape": 1.562,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 85.46,
+        "rmse": 139.712,
+        "wmape": 1.481,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 73.563,
+        "rmse": 113.398,
+        "wmape": 1.296,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 77.429,
+        "rmse": 123.078,
+        "wmape": 1.364,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 77.911,
+        "rmse": 124.075,
+        "wmape": 1.373,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 91.684,
+        "rmse": 159.387,
+        "wmape": 1.615,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 89.36,
+        "rmse": 153.586,
+        "wmape": 1.548,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 73.685,
+        "rmse": 113.622,
+        "wmape": 1.298,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 75.467,
+        "rmse": 117.772,
+        "wmape": 1.33,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 78.458,
+        "rmse": 123.255,
+        "wmape": 1.382,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 91.595,
+        "rmse": 157.262,
+        "wmape": 1.614,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 85.76,
+        "rmse": 144.163,
+        "wmape": 1.486,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 101.785,
+        "rmse": 171.474,
+        "wmape": 1.793,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 101.785,
+        "rmse": 171.474,
+        "wmape": 1.793,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 101.785,
+        "rmse": 171.474,
+        "wmape": 1.793,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 101.785,
+        "rmse": 171.474,
+        "wmape": 1.793,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Historical average (hour-of-week)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 102.08,
+        "rmse": 173.174,
+        "wmape": 1.768,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 105.878,
+        "rmse": 182.025,
+        "wmape": 1.865,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 105.878,
+        "rmse": 182.025,
+        "wmape": 1.865,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 105.878,
+        "rmse": 182.025,
+        "wmape": 1.865,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 105.878,
+        "rmse": 182.025,
+        "wmape": 1.865,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Weekly moving average (up to 4 same-month weeks)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 107.042,
+        "rmse": 184.227,
+        "wmape": 1.854,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 1,
+        "mae": 108.081,
+        "rmse": 190.498,
+        "wmape": 1.904,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 3,
+        "mae": 108.081,
+        "rmse": 190.498,
+        "wmape": 1.904,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 6,
+        "mae": 108.081,
+        "rmse": 190.498,
+        "wmape": 1.904,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 12,
+        "mae": 108.081,
+        "rmse": 190.498,
+        "wmape": 1.904,
+        "cellIndex": 44,
+        "outputIndex": 27
+      },
+      {
+        "model": "Seasonal naive (same hour last week)",
+        "split": "test",
+        "subset": "events",
+        "horizon": 24,
+        "mae": 109.306,
+        "rmse": 192.831,
+        "wmape": 1.894,
+        "cellIndex": 44,
+        "outputIndex": 27
+      }
+    ],
+    "selectedGnn": "Residual Graph (OD + correlation)",
+    "selectedBaseline": "Seasonal residual (no graph)",
+    "winnerByHorizon": [
+      {
+        "horizon": 1,
+        "model": "Residual Graph (OD + correlation)"
+      },
+      {
+        "horizon": 3,
+        "model": "Residual Graph (OD + correlation)"
+      },
+      {
+        "horizon": 6,
+        "model": "Residual Graph (OD + correlation)"
+      },
+      {
+        "horizon": 12,
+        "model": "Residual Graph (distance + OD)"
+      },
+      {
+        "horizon": 24,
+        "model": "Residual Graph (distance + OD)"
+      }
+    ],
+    "reportedPrecisionDecimals": 3,
+    "partialValidationRows": [
+      {
+        "model": "GCN-GRU (distance graph)",
+        "horizon": 1,
+        "mae": 4.296
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "horizon": 3,
+        "mae": 4.608
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "horizon": 6,
+        "mae": 4.711
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "horizon": 12,
+        "mae": 4.647
+      },
+      {
+        "model": "GCN-GRU (distance graph)",
+        "horizon": 24,
+        "mae": 4.861
+      },
+      {
+        "model": "GRU (no graph)",
+        "horizon": 1,
+        "mae": 4.512
+      },
+      {
+        "model": "GRU (no graph)",
+        "horizon": 3,
+        "mae": 4.717
+      },
+      {
+        "model": "GRU (no graph)",
+        "horizon": 6,
+        "mae": 4.901
+      },
+      {
+        "model": "GRU (no graph)",
+        "horizon": 12,
+        "mae": 4.891
+      },
+      {
+        "model": "GRU (no graph)",
+        "horizon": 24,
+        "mae": 4.999
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "horizon": 1,
+        "mae": 4.071
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "horizon": 3,
+        "mae": 4.417
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "horizon": 6,
+        "mae": 4.541
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "horizon": 12,
+        "mae": 4.672
+      },
+      {
+        "model": "Graph WaveNet (distance + adaptive)",
+        "horizon": 24,
+        "mae": 4.688
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "horizon": 1,
+        "mae": 3.725
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "horizon": 3,
+        "mae": 4.298
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "horizon": 6,
+        "mae": 4.526
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "horizon": 12,
+        "mae": 4.577
+      },
+      {
+        "model": "LightGBM (no spatial features)",
+        "horizon": 24,
+        "mae": 4.529
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "horizon": 1,
+        "mae": 3.625
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "horizon": 3,
+        "mae": 4.295
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "horizon": 6,
+        "mae": 4.513
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "horizon": 12,
+        "mae": 4.573
+      },
+      {
+        "model": "LightGBM + spatial lags",
+        "horizon": 24,
+        "mae": 4.506
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "horizon": 1,
+        "mae": 3.66
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "horizon": 3,
+        "mae": 3.85
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "horizon": 6,
+        "mae": 3.966
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "horizon": 12,
+        "mae": 4.098
+      },
+      {
+        "model": "Residual Graph (OD + correlation)",
+        "horizon": 24,
+        "mae": 4.163
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "horizon": 1,
+        "mae": 3.72
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "horizon": 3,
+        "mae": 3.911
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "horizon": 6,
+        "mae": 4.017
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "horizon": 12,
+        "mae": 4.113
+      },
+      {
+        "model": "Residual Graph (distance + OD)",
+        "horizon": 24,
+        "mae": 4.167
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "horizon": 1,
+        "mae": 3.774
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "horizon": 3,
+        "mae": 3.936
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "horizon": 6,
+        "mae": 4.057
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "horizon": 12,
+        "mae": 4.151
+      },
+      {
+        "model": "Seasonal residual (no graph)",
+        "horizon": 24,
+        "mae": 4.196
+      }
+    ],
+    "paperDuplicateRowsRemoved": 1,
+    "message": "Reported saved notebook results on held-out February and September 2025; not an independent rerun or current-demand accuracy measurement."
+  },
+  "breakdowns": {
+    "horizon": 1,
+    "borough": [
+      {
+        "borough": "Bronx",
+        "selected": 0.647,
+        "gru": 0.66,
+        "spatialLightgbm": 0.687,
+        "changeVsGruPercent": -2.094
+      },
+      {
+        "borough": "Brooklyn",
+        "selected": 1.34,
+        "gru": 1.44,
+        "spatialLightgbm": 1.372,
+        "changeVsGruPercent": -6.904
+      },
+      {
+        "borough": "EWR",
+        "selected": 0.546,
+        "gru": 0.568,
+        "spatialLightgbm": 0.633,
+        "changeVsGruPercent": -3.871
+      },
+      {
+        "borough": "Manhattan",
+        "selected": 9.162,
+        "gru": 12.453,
+        "spatialLightgbm": 9.475,
+        "changeVsGruPercent": -26.426
+      },
+      {
+        "borough": "Queens",
+        "selected": 1.816,
+        "gru": 2.187,
+        "spatialLightgbm": 1.864,
+        "changeVsGruPercent": -16.95
+      },
+      {
+        "borough": "Staten Island",
+        "selected": 0.034,
+        "gru": 0.029,
+        "spatialLightgbm": 0.051,
+        "changeVsGruPercent": 18.088
+      }
+    ],
+    "conditions": [
+      {
+        "condition": "Weekday hours",
+        "selected": 3.129,
+        "gru": 4.038,
+        "spatialLightgbm": 3.287
+      },
+      {
+        "condition": "Weekend hours",
+        "selected": 3.733,
+        "gru": 4.91,
+        "spatialLightgbm": 3.724
+      },
+      {
+        "condition": "Holiday hours",
+        "selected": 3.455,
+        "gru": 3.331,
+        "spatialLightgbm": 2.84
+      },
+      {
+        "condition": "Non-holiday hours",
+        "selected": 3.298,
+        "gru": 4.31,
+        "spatialLightgbm": 3.425
+      },
+      {
+        "condition": "Event cells",
+        "selected": 73.563,
+        "gru": 58.325,
+        "spatialLightgbm": 41.979
+      },
+      {
+        "condition": "Normal cells",
+        "selected": 3.291,
+        "gru": 4.279,
+        "spatialLightgbm": 3.406
+      }
+    ],
+    "improvedActiveZones": 152,
+    "activeZones": 156,
+    "medianActiveZoneChangeVsGruPercent": -7.2,
+    "cellIndex": 45
   },
   "deployment": {
     "model": "Residual Graph (OD + correlation)",
@@ -143,14 +3492,17 @@
     "metadataPath": "model/metadata.json",
     "onnxSha256": "172bd5db30466a2b69bbfe1269af9a2f14c3181768218bf4d1c3facc73f343df",
     "accuracyEstablished": false,
-    "message": "This separate ONNX export uses 168 input hours and five direct horizons. The default current-date demand estimate has no observed current pickup feed; the notebook archive does not validate this export."
+    "notebookReportsOnnxParity": true,
+    "benchmarkWeightsCryptographicallyLinked": false,
+    "message": "The selected notebook model and deployed export share the reported architecture, 168-hour input and five horizons. The uploaded notebook contains no weight-file hash linking its benchmark scores to the currently deployed ONNX bytes. Current-date estimates still lack observed current pickups."
   },
   "limitations": [
-    "Notebook outputs were cleared after preprocessing corrections; no current measured model ranking is available.",
-    "Yearly dataset totals in notebook prose have not been recomputed from the underlying parquet files in this review.",
-    "The current notebook evaluates 1/3/6 hours; 12/24-hour accuracy is not established by it.",
-    "The notebook uses chronological splits, not random month splits.",
-    "Standalone graph arrays and current evaluation CSVs are not checked in; archived edge counts cannot substitute for a rerun."
+    "Saved output snapshot supplied by the project owner; no independent retraining or raw-data recount was performed.",
+    "Training months include dates later than the held-out months. This tests held-out-month generalization within 2025, not forward-only deployment performance.",
+    "The selected GNN is not the lowest-MAE test model at every horizon or subset; distance + OD is lower at 12/24 hours, and event/holiday errors need separate review.",
+    "The notebook imputes suspected zero-count gaps using training profiles and excludes gap/DST target cells; metrics reflect those masks.",
+    "All cell execution counters are cleared although outputs remain. Full-precision result CSVs, checkpoints and repeated-seed results are not attached.",
+    "The paper display repeats the seasonal residual row. Its duplicate values were cross-checked against the complete benchmark table."
   ],
   "archivePath": "data/research-archive.json"
 }
