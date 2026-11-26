@@ -7,6 +7,7 @@ import { fareSource } from '@/lib/fares';
 import { tripHorizons } from '@/lib/horizons';
 import type { PlannedTrip } from '@/lib/trip-planning';
 import type { WeatherHour } from '@/lib/weather';
+import type { Forecast } from '@/lib/types';
 
 const orderedZones = [...zones].sort((a, b) => a.name.localeCompare(b.name));
 const boroughs = [...new Set(orderedZones.map(zone => zone.borough))].sort();
@@ -33,12 +34,16 @@ export default function FareEstimator() {
   const [dropoff, setDropoff] = useState('');
   const [retry, setRetry] = useState(0);
   const [horizon,setHorizon] = useState(1);
+  const [forecast,setForecast]=useState<Forecast|null>(null);
   const [quote, setQuote] = useState<{key: string; result?: PlannedTrip; error?: string} | null>(null);
   const key = pickup && dropoff ? `${pickup}:${dropoff}:${horizon}:${retry}` : '';
   const current = key && quote?.key === key ? quote : null;
   const result = current?.result;
   const error = current?.error;
   const loading = Boolean(key && !current);
+  const demand=forecast?.rows.find(row=>row.zoneId===Number(pickup)&&row.horizon===(horizon||1));
+
+  useEffect(()=>{const controller=new AbortController();void fetch('/api/forecast',{cache:'no-store',signal:controller.signal}).then(r=>r.json()).then(setForecast).catch(()=>{});return()=>controller.abort();},[]);
 
   useEffect(() => {
     if (!key) return;
@@ -91,6 +96,11 @@ export default function FareEstimator() {
           </div>
           <p>Changing departure refreshes this route's fare and hourly weather forecast.</p>
         </fieldset>
+        {pickup&&forecast&&<aside className="trip-demand" aria-label="Pickup demand context"><h3>{forecast.mode==='estimate'?'Current-demand estimate':forecast.mode==='historical'?'Historical demand replay':forecast.mode==='live'?'Observed-input demand forecast':'Demand estimate unavailable'}</h3>
+          {demand&&<p><b>{Math.round(demand.value).toLocaleString('en-US')} estimated pickups</b> in the selected pickup zone for the hour starting {nyTime.format(new Date(Date.parse(forecast.issuedAt)+(horizon||1)*3600000))}.</p>}
+          <p>{forecast.message}</p><p>Demand context does not add a surcharge to regulated taxi fares.</p>
+          <details><summary>Demand source and timing</summary><p>{forecast.historySource}</p><p>Model origin: {nyTime.format(new Date(forecast.issuedAt))}. The estimate includes an assumed pickup count for the current input hour. Horizons predict individual target hours; trip departure uses the current time plus your selection.</p></details>
+        </aside>}
       </div>
       <div className="fare-total trip-total" aria-live="polite" aria-busy={loading}>
         {result ? <>

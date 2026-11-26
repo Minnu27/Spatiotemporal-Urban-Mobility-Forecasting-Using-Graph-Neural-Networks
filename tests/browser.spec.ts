@@ -35,6 +35,7 @@ test('departure choices appear in Trip costs and refresh the selected route, pri
 });
 
 test('dashboard navigation, map selection, research, fares and source chat',async({page})=>{
+ await page.route('**/api/chat',route=>route.fulfill({json:{mode:'sources',answer:'Archived model comparison [1].',citations:[{index:1,title:'Model comparison: best saved results',url:'https://github.com/Minnu27/Spatiotemporal-Urban-Mobility-Forecasting-Using-Graph-Neural-Networks'}]}}));
  await page.goto((process.env.TEST_BASE_URL || 'http://127.0.0.1:3000'));await expect(page.getByRole('heading',{name:'The city, connected.'})).toBeVisible();
  await page.getByLabel('Choose taxi zone').selectOption('132');await expect(page.getByText('Queens',{exact:true}).last()).toBeVisible();
  await page.getByRole('button',{name:'Research',exact:true}).click();await expect(page.getByRole('heading',{name:'Model comparison'})).toBeVisible();await expect(page.getByText('3.528',{exact:true})).toBeVisible();
@@ -45,6 +46,12 @@ test('dashboard navigation, map selection, research, fares and source chat',asyn
  await expect(page.getByText('$70.00',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Which model performed best?'}).click();await page.getByRole('button',{name:'Send question'}).click();await expect(page.getByText('Retrieved source excerpts',{exact:true})).toBeVisible({timeout:30000});await expect(page.getByRole('link',{name:/Model comparison: best saved results/})).toBeVisible();
  await page.getByRole('button',{name:'Disruptions',exact:false}).first().click();await expect(page.getByRole('heading',{name:'Official disruption reports'})).toBeVisible();
+});
+test('unconfigured private workspace explains setup without exposing personal content',async({page})=>{
+ await page.route('**/api/account',route=>route.fulfill({json:{configured:false,authenticated:false}}));
+ await page.goto(baseUrl+'/workspace');await expect(page.getByRole('heading',{name:'Sign in to your account'})).toBeVisible();
+ await expect(page.getByText('Private storage has not been configured.',{exact:false})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Your knowledge'})).toHaveCount(0);
 });
 test('mobile layout fits viewport and navigation works',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.goto((process.env.TEST_BASE_URL || 'http://127.0.0.1:3000'));

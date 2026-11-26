@@ -1,0 +1,27 @@
+name: Private data maintenance
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: private-data-maintenance
+  cancel-in-progress: false
+jobs:
+  cleanup:
+    if: vars.URBANFLOW_MAINTENANCE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Expire private data and archive official alerts
+        run: node scripts/maintenance.mjs
+        env:
+          URBANFLOW_URL: ${{ vars.URBANFLOW_URL }}
+          MAINTENANCE_TOKEN: ${{ secrets.MAINTENANCE_TOKEN }}

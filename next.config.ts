@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 const config: NextConfig = {
   poweredByHeader: false,
   outputFileTracingIncludes: {
-    '/api/{forecast,health}': [
+    '/api/{forecast,health,chat}': [
       './model/**/*',
       './node_modules/onnxruntime-node/bin/napi-v6/linux/x64/libonnxruntime.so.1',
     ],
