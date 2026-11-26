@@ -1,0 +1,151 @@
+{
+  "status": "notebook_snapshot",
+  "independentlyReproduced": false,
+  "source": "Spatiotemporal_Urban_Mobility_Forecasting_System_using_Graph_Neural_Networks_(GNNs).ipynb",
+  "sha256": "12f5528d5967b18235a12be3e4f31b6c42df1a4bc7eb7d171fd60398697c55c8",
+  "cell": 40,
+  "period": "November\u2013December 2025",
+  "rows": [
+    {
+      "model": "Weekly moving average (4 weeks)",
+      "horizon": 1,
+      "mae": 5.764,
+      "rmse": 19.415
+    },
+    {
+      "model": "Weekly moving average (4 weeks)",
+      "horizon": 3,
+      "mae": 5.755,
+      "rmse": 19.376
+    },
+    {
+      "model": "Weekly moving average (4 weeks)",
+      "horizon": 6,
+      "mae": 5.751,
+      "rmse": 19.373
+    },
+    {
+      "model": "LightGBM",
+      "horizon": 1,
+      "mae": 3.692,
+      "rmse": 10.76
+    },
+    {
+      "model": "LightGBM",
+      "horizon": 3,
+      "mae": 4.415,
+      "rmse": 13.657
+    },
+    {
+      "model": "LightGBM",
+      "horizon": 6,
+      "mae": 4.736,
+      "rmse": 15.083
+    },
+    {
+      "model": "LightGBM + spatial lags",
+      "horizon": 1,
+      "mae": 3.528,
+      "rmse": 10.279
+    },
+    {
+      "model": "LightGBM + spatial lags",
+      "horizon": 3,
+      "mae": 4.368,
+      "rmse": 13.437
+    },
+    {
+      "model": "LightGBM + spatial lags",
+      "horizon": 6,
+      "mae": 4.716,
+      "rmse": 14.969
+    },
+    {
+      "model": "GRU (no graph)",
+      "horizon": 1,
+      "mae": 4.523,
+      "rmse": 14.17
+    },
+    {
+      "model": "GRU (no graph)",
+      "horizon": 3,
+      "mae": 5.088,
+      "rmse": 16.406
+    },
+    {
+      "model": "GRU (no graph)",
+      "horizon": 6,
+      "mae": 5.57,
+      "rmse": 17.921
+    },
+    {
+      "model": "GCN-GRU random graph",
+      "horizon": 1,
+      "mae": 4.479,
+      "rmse": 13.885
+    },
+    {
+      "model": "GCN-GRU random graph",
+      "horizon": 3,
+      "mae": 5.021,
+      "rmse": 16.279
+    },
+    {
+      "model": "GCN-GRU random graph",
+      "horizon": 6,
+      "mae": 5.326,
+      "rmse": 17.247
+    },
+    {
+      "model": "GCN-GRU (correlation)",
+      "horizon": 1,
+      "mae": 4.086,
+      "rmse": 12.871
+    },
+    {
+      "model": "GCN-GRU (correlation)",
+      "horizon": 3,
+      "mae": 4.73,
+      "rmse": 15.121
+    },
+    {
+      "model": "GCN-GRU (correlation)",
+      "horizon": 6,
+      "mae": 5.031,
+      "rmse": 16.212
+    }
+  ],
+  "graphs": [
+    {
+      "name": "Contiguity",
+      "edges": 672,
+      "meanDegree": 5.1,
+      "isolated": 0
+    },
+    {
+      "name": "Distance (kNN)",
+      "edges": 1254,
+      "meanDegree": 9.5,
+      "isolated": 0
+    },
+    {
+      "name": "OD flow",
+      "edges": 2308,
+      "meanDegree": 17.6,
+      "isolated": 2
+    },
+    {
+      "name": "Correlation",
+      "edges": 2413,
+      "meanDegree": 18.3,
+      "isolated": 3
+    }
+  ],
+  "limitations": [
+    "Saved notebook outputs, not an independent rerun.",
+    "Full-year gap imputation leaks future information; rerun after corrections.",
+    "Trained checkpoints, demand matrices and graph arrays are absent from this repository.",
+    "Live notebook forecasts use typical demand as a proxy for recent observations and recurse beyond the trained horizon.",
+    "Spatial LightGBM outperformed the GNNs in the saved comparison."
+  ]
+}
