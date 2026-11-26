@@ -30,7 +30,10 @@ npx playwright test
 
 ## Qwen RAG
 
-Set `QWEN_API_KEY`, `QWEN_BASE_URL` and `QWEN_MODEL`. Defaults target Alibaba Cloud Model Studio's international OpenAI-compatible endpoint and `qwen-plus`. Provider availability is account/region dependent; another OpenAI-compatible host can be configured. Do not use `NEXT_PUBLIC_` for any credential.
+For the Cloudflare free-allowance setup and exact places to paste each credential, use [docs/CREDENTIALS.md](docs/CREDENTIALS.md). Approved users can run private connection checks from `/workspace`. Existing PR #8 installations also apply `supabase/migrations/202611260002_setup_access.sql`; verify with `supabase/verify-setup.sql`.
+
+
+Set `QWEN_API_KEY`, `QWEN_BASE_URL`, `QWEN_MODEL` and `EMBEDDING_MODEL` using the Cloudflare examples in `.env.example`. Tokens stay server-only. Other OpenAI-compatible hosts can be configured, including the original Alibaba endpoint. Provider availability and allowances depend on the account. Never use `NEXT_PUBLIC_` for a server credential.
 
 Public retrieval and generation require shared limits: Supabase service key plus a rate-limit salt, or Upstash. Private upload/search/chat/history routes use atomic account quotas in Postgres. Missing limits fail closed. Public methodology and active alerts use lexical retrieval; personal text/Markdown uses persistent embeddings plus full-text retrieval. Structured demand values come directly from the forecast API with mode, source and target hour.
 

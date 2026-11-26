@@ -9,7 +9,7 @@ const input=z.object({filename:z.string().trim().min(1).max(180).regex(/\.(txt|m
   text:z.string().trim().min(2).max(16000),consent:z.literal(true)});
 export async function GET(){try{
   const {db,user}=await requireMember();await consumeLimit(db,'read');
-  const {data,error}=await db.from('rag_documents').select('id,title,filename,status,created_at,expires_at').eq('owner_id',user.id).order('created_at',{ascending:false}).limit(100);
+  const {data,error}=await db.from('rag_documents').select('id,title,filename,status,embedding_model,created_at,expires_at').eq('owner_id',user.id).order('created_at',{ascending:false}).limit(100);
   if(error)throw error;return privateJson({documents:data});
 }catch(error){return errorResponse(error);}}
 export async function POST(request:Request){try{

@@ -43,3 +43,7 @@ Vercel deployment protection can additionally restrict the whole website but is 
 ## Included verification
 
 `npm test` runs the migration in PostgreSQL/pgvector through PGlite as authenticated non-owner roles. It checks cross-account tables, search, storage policies, forged ownership, conversations, membership and concurrent limits. Other tests cover chunk offsets, vector dimensions/order, citation indices, absent configuration, Origin enforcement and weather preprocessing. Run the deployed acceptance steps in [SETUP.md](SETUP.md) too; local tests cannot validate cloud credentials and settings.
+
+## Connection diagnostics
+
+The follow-up adds a private setup checker gated by approved membership, exact Origin and account quotas. Provider calls are opt-in and use fixed non-personal text. Reports return statuses and constant repair actions without credentials, document bodies or raw upstream errors. The CLI shares these checks. It detects dashboard URLs used as project API URLs, wrong key types, variable-name typos, incomplete Cloudflare paths and missing model prefixes. Apply the second migration to make schema usage and function grants explicit across Supabase project defaults; RLS ownership policies remain enforced.
