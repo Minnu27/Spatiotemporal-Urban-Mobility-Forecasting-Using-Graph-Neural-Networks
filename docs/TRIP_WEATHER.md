@@ -20,7 +20,7 @@ JFK–Manhattan uses a flat tariff. Weather can increase the displayed travel-ti
 
 ## Relationship to the trained GNN
 
-The bundled ONNX model predicts zone pickup counts using 168 hours of observed demand and context, including weather history. Its configured observation window is historical. It has no trip-duration or fare output and does not consume future weather as a separate input tensor. Replacing its historical weather inputs with today's forecast would mix dates and invalidate inference.
+The bundled ONNX model predicts zone pickup counts using 168 hours of observed demand and context, including weather history. Historical replay uses a fixed 2025 observation window. Current-date estimate mode instead builds a fully date-aligned assumed pickup window and recent weather using the original scaling; it labels those pickups as estimates and does not establish current accuracy. It has no trip-duration or fare output and does not consume future weather as a separate input tensor. Replacing weather alone while retaining a historical origin would mix dates; estimate mode explicitly rebuilds and dates the entire assumed input window.
 
 This implementation therefore connects live forecast weather to an explicit **travel-time sensitivity model**, followed by the regulated meter. It does not relabel GNN pickup predictions as fares or claim that the scenario is a learned weather-price model. A trained replacement requires observed trip durations by route/time, weather forecasts available at each historical issue time, a chronological evaluation, exported feature transforms and a validated inference artifact. Reanalysis weather alone would not measure real forecast-time performance. The present adapter boundary is `planTrip()`/`slowRoute()`.
 

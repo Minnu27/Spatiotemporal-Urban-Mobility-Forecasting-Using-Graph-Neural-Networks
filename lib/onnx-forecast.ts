@@ -23,14 +23,15 @@ let cached: Promise<Forecast> | undefined;
 const modelDirectory = join(process.cwd(), 'model');
 
 async function runHistoricalForecast(): Promise<Forecast> {
-  const encoded = process.env.COLAB_HISTORICAL_INPUT_GZIP;
-  if (!encoded) throw new Error('Historical input is not configured');
-  const exampleText = gunzipSync(Buffer.from(encoded, 'base64'), {
-    maxOutputLength: 1024 * 1024,
-  }).toString('utf8');
-  const metadataText = await readFile(join(modelDirectory, 'metadata.json'), 'utf8');
-  const metadata = metadataSchema.parse(JSON.parse(metadataText));
-  const example = exampleSchema.parse(JSON.parse(exampleText));
+  const encoded=process.env.COLAB_HISTORICAL_INPUT_GZIP;
+  if(!encoded)throw Error('Historical input is not configured');
+  const example=JSON.parse(gunzipSync(Buffer.from(encoded,'base64'),{maxOutputLength:1024*1024}).toString('utf8'));
+  return runForecastInput(example,'historical','Held-out 2025 NYC TLC pickup and context observations','Historical replay, not current demand.');
+}
+
+export async function runForecastInput(input:unknown,mode:'historical'|'estimate'|'live',historySource:string,message:string):Promise<Forecast>{
+  const metadata=metadataSchema.parse(JSON.parse(await readFile(join(modelDirectory,'metadata.json'),'utf8')));
+  const example=exampleSchema.parse(input);
   if (new Set(metadata.zones.map(zone => zone.id)).size !== metadata.zones.length) {
     throw new Error('Duplicate model zone IDs');
   }
@@ -56,14 +57,14 @@ async function runHistoricalForecast(): Promise<Forecast> {
       throw new Error('Invalid model forecast');
     }
     return {
-      mode: 'historical',
+      mode,
       model: metadata.model,
       issuedAt: example.origin,
-      historySource: 'Held-out 2025 NYC TLC pickup and context observations',
+      historySource,
       rows: metadata.horizons.flatMap((horizon, index) => metadata.zones.map((zone, column) => ({
         zoneId: zone.id, horizon, value: values[index * metadata.zones.length + column],
       }))),
-      message: 'Replay of a held-out observation window from the Colab export.',
+      message,
     };
   } finally {
     await session.release();

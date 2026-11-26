@@ -1,0 +1,26 @@
+{
+  "weather_scaling": {
+    "temperature_2m": {
+      "mean": 13.045325203252034,
+      "std": 11.476970222935806
+    },
+    "precipitation": {
+      "mean": 0.1124491869918699,
+      "std": 0.6006116630325098
+    },
+    "snowfall": {
+      "mean": 0.00505081300813,
+      "std": 0.0626818678758784
+    },
+    "wind_speed_10m": {
+      "mean": 10.151490514905149,
+      "std": 5.398309867883757
+    }
+  },
+  "input": {
+    "demand": "Raw nonnegative pickup counts in zone order. Oldest hour first.",
+    "context": "Aligned numeric inputs in context_columns order. Calendar flags are 0/1; continuous weather uses (value - mean) / std. is_raining is 1 when precipitation exceeds 0.1 mm.",
+    "calendar": "Use New York local time. Hour encodings use 2*pi*hour/24. Weekday encodings use 2*pi*weekday/7 with Monday=0. Use federal holiday flags and the transition-hour DST flag from the notebook.",
+    "origin": "ISO timestamp of the last input row. Estimate mode includes an assumed count for the in-progress current hour; it is not an observed current pickup count."
+  }
+}
