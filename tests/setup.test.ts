@@ -35,7 +35,7 @@ test('database diagnosis maps only safe constant messages',()=>{
 });
 test('Cloudflare Qwen 3.8 summarizes evidence without a separate thinking pass',()=>{
  const restore=installEnv();try{
-  const body=completionBody([{role:'user',content:'OK'}]);assert.ok('max_completion_tokens'in body);assert.equal(body.max_completion_tokens,1536);
+  const body=completionBody([{role:'user',content:'OK'}]);assert.ok('max_completion_tokens'in body);assert.equal(body.max_completion_tokens,1024);
   assert.ok('chat_template_kwargs'in body);assert.equal(body.chat_template_kwargs?.enable_thinking,false);assert.ok(!('max_tokens'in body));
   process.env.QWEN_MODEL='@cf/qwen/another-reasoning-model';
   const reasoning=completionBody([{role:'user',content:'OK'}]);assert.ok('max_completion_tokens'in reasoning);assert.ok('reasoning_effort'in reasoning);assert.equal(reasoning.max_completion_tokens,4096);assert.equal(reasoning.reasoning_effort,'low');

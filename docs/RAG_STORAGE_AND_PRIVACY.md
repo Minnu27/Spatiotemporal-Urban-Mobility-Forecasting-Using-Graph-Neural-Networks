@@ -21,7 +21,7 @@ Normalized originals live in private Supabase Storage. Postgres stores metadata,
 
 Search uses the user's session, never the administrative key. SQL filters ownership, membership, readiness, expiry and embedding model before semantic/keyword ranking. Candidates combine through reciprocal rank fusion. Query embeddings are computed per question; document vectors persist. There is no global personal-result cache. Changing a model requires re-embedding; equal dimensionality does not make different models compatible.
 
-Private downloads verify ownership again. All private/chat responses and errors are `private, no-store`. React escapes text; no source HTML executes. Mutations require a matching Origin. No arbitrary URL fetching or model-triggered tools are exposed. Question/history/source text is untrusted. Prompt instructions and citation checks reduce mistakes; they do not prove correctness or solve prompt injection generally.
+Private downloads verify ownership again. All private/chat responses and errors are `private, no-store`. React escapes text; no source HTML executes. Mutations require a matching Origin. No arbitrary URL fetching or model-triggered tools are exposed. Question/history/source text is untrusted. Prompt instructions and citation checks reduce mistakes; they do not prove correctness or solve prompt injection generally. Public chat keeps a bounded transcript in React memory, never localStorage or database history; recent messages are sent to Qwen for conversational context. General knowledge is labeled without source links. Streamed text is visibly a draft until final source checks; a rejected answer is replaced with retrieved excerpts. Stop response cancels the upstream generation request.
 
 ## Retention and deletion
 
