@@ -1,0 +1,23 @@
+{
+  "originalFilename": "Spatiotemporal_Urban_Mobility_Forcasting_GNNs (1).ipynb",
+  "originalSha256": "f91d8494a1499a09737d8fdd45132d2fd133306ecefd806bd63c761943dc5f67",
+  "originalBytes": 72375351,
+  "archivePath": "notebooks/original/Spatiotemporal_Urban_Mobility_Forcasting_GNNs.ipynb.xz",
+  "archiveSha256": "5e1d51b2d057ec6c261f7f220357618b9c25a111806558552d816fc420d2ec53",
+  "archiveBytes": 10280816,
+  "notebookPath": "Spatiotemporal_Urban_Mobility_Forecasting_System_using_Graph_Neural_Networks_(GNNs).ipynb",
+  "notebookSha256": "393b944645ecc0b1d963a221880655a6dc3c90fdce2df411ab96178fba8a650a",
+  "notebookBytes": 1158057,
+  "codeSha256": "e4763edcae13666044101023b1f63fd4f452dc2d4e33cb5dacad46ad0a4c7ea6",
+  "cellCount": 52,
+  "codeCells": 39,
+  "savedOutputCells": 37,
+  "retainedTableOutputs": 78,
+  "externalizedPresentationMimeCounts": {
+    "application/vnd.google.colaboratory.intrinsic+json": 78,
+    "image/png": 77,
+    "text/html": 3,
+    "application/vnd.jupyter.widget-view+json": 1,
+    "application/javascript": 2
+  }
+}
