@@ -1,5 +1,6 @@
 import {z} from 'zod';
 import {fetchJson,serverUrl,UpstreamError} from './http';
+import {streamLines} from './chat-protocol';
 
 export class ProviderError extends Error {
  constructor(public code:string,message:string){super(message);}
@@ -27,12 +28,13 @@ export function completionBody(messages:{role:string;content:string}[]){
   // Evidence summarization does not need a separate reasoning pass. Qwen's
   // default thinking mode regularly exhausted the old 30-second timeout.
   ...(settings.cloudflare&&settings.model==='@cf/qwen/qwen3.8-27b'
-   ?{max_completion_tokens:1536,chat_template_kwargs:{enable_thinking:false}}
+   ?{max_completion_tokens:1024,chat_template_kwargs:{enable_thinking:false}}
    :settings.reasoning?{max_completion_tokens:4096,reasoning_effort:'low'}:{max_tokens:900})};
 }
-export async function generateCompletion(messages:{role:string;content:string}[]){
+export async function generateCompletion(messages:{role:string;content:string}[],onDelta?:(text:string)=>void,signal?:AbortSignal){
  if(!process.env.QWEN_API_KEY)throw new ProviderError('provider_key_missing','Add QWEN_API_KEY in the deployment environment.');
  const {base}=chatSettings();
+ if(onDelta)return streamedCompletion(base,messages,onDelta,signal);
  const raw=await fetchJson(base+'/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${process.env.QWEN_API_KEY}`,'Content-Type':'application/json'},
   body:JSON.stringify(completionBody(messages))},150_000,60_000);
  const parsed=z.object({choices:z.array(z.object({message:z.object({content:z.string().nullable()}),finish_reason:z.string().nullable().optional()})).min(1)}).parse(raw);
@@ -41,4 +43,26 @@ export async function generateCompletion(messages:{role:string;content:string}[]
  if(first.finish_reason==='length')throw new ProviderError('provider_incomplete_answer','The model reached its completion limit. Try a shorter question or less conversation context.');
  if(answer.length>12000)throw new ProviderError('provider_answer_too_large','The AI response exceeded the application limit.');
  return answer;
+}
+
+async function streamedCompletion(base:string,messages:{role:string;content:string}[],onDelta:(text:string)=>void,signal?:AbortSignal){
+ const timeout=AbortSignal.timeout(60_000);
+ const response=await fetch(base+'/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${process.env.QWEN_API_KEY}`,'Content-Type':'application/json'},
+  body:JSON.stringify({...completionBody(messages),stream:true}),signal:signal?AbortSignal.any([signal,timeout]):timeout,cache:'no-store',redirect:'error'});
+ if(!response.ok)throw new UpstreamError(response.status);
+ if(!response.body)throw new ProviderError('provider_empty_answer','The model returned no answer. Please try again.');
+ let answer='',finish:string|null=null,done=false;
+ const chunkSchema=z.object({choices:z.array(z.object({delta:z.object({content:z.string().nullable().optional()}),finish_reason:z.string().nullable().optional()}))});
+ for await(const line of streamLines(response.body,2_000_000)){
+  if(!line.startsWith('data:'))continue;
+  const data=line.slice(5).trim();if(data==='[DONE]'){done=true;break;}if(!data)continue;
+  const chunk=chunkSchema.parse(JSON.parse(data)).choices[0];if(!chunk)continue;
+  // Internal reasoning fields never leave the server.
+  const text=chunk.delta.content;if(text){answer+=text;if(answer.length>12000)throw new ProviderError('provider_answer_too_large','The AI response exceeded the application limit.');onDelta(text);}
+  if(chunk.finish_reason)finish=chunk.finish_reason;
+ }
+ if(finish==='length')throw new ProviderError('provider_incomplete_answer','The model reached its completion limit. Try a shorter question or less conversation context.');
+ if(!answer.trim())throw new ProviderError('provider_empty_answer','The model returned no answer. Please try again.');
+ if(!done&&finish!=='stop')throw new ProviderError('provider_incomplete_answer','The AI connection ended before the answer finished. Please try again.');
+ return answer.trim();
 }

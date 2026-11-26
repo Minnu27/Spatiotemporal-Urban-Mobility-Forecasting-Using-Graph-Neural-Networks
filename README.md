@@ -30,6 +30,8 @@ npx playwright test
 
 ## Qwen RAG
 
+Ask UrbanFlow supports a multi-turn conversation with arbitrary questions, follow-ups, streamed replies, Stop response and New chat. Example prompts are optional. Recent public messages stay in page memory across dashboard sections and are sent as bounded context; refreshing clears them. Greetings and general explanations are labeled separately from cited project/live answers. Static questions skip live feed requests. Weather and explicitly named zone/hour demand questions can retrieve structured context; missing current data is never supplied by a fabricated forecast.
+
 For the Cloudflare free-allowance setup and exact places to paste each credential, use [docs/CREDENTIALS.md](docs/CREDENTIALS.md). Approved users can run private connection checks from `/workspace`. Existing PR #8 installations also apply `supabase/migrations/202611260002_setup_access.sql`; verify with `supabase/verify-setup.sql`.
 
 

@@ -4,6 +4,7 @@ import { browserClient } from '@/lib/private/browser';
 import zones from '@/data/zones.json';
 import type { Forecast } from '@/lib/types';
 import SetupChecks from './setup-checks';
+import {recentHistory} from '@/lib/chat-protocol';
 
 type Citation={index:number;title:string;url:string};
 type Message={role:string;body:string;citations?:Citation[]};
@@ -38,7 +39,7 @@ export default function Workspace(){
  });}
  async function ask(e:FormEvent){e.preventDefault();const sent=question.trim();await action('chat',async()=>{
   const reply=await api<{answer:string;citations:Citation[];conversationId?:string;notice?:string;historySaved:boolean}>('/api/chat','POST',{
-   question:sent,scope:'private',remember,conversationId,archive:includeArchive,demand:includeDemand?{zoneId,horizon}:undefined});
+   question:sent,scope:'private',remember,conversationId,history:recentHistory(messages),archive:includeArchive,demand:includeDemand?{zoneId,horizon}:undefined});
   setMessages(previous=>[...previous,{role:'user',body:sent},{role:'assistant',body:reply.answer,citations:reply.citations}]);setQuestion('');
   setConversationId(reply.conversationId||conversationId);if(reply.notice)setNotice(reply.notice);if(reply.historySaved)await refresh();
  });}

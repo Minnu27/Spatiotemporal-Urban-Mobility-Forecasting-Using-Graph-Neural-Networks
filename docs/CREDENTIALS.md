@@ -89,7 +89,7 @@ Open **Actions → Private data maintenance → Run workflow**. Confirm success 
 
 ## Provider notes
 
-Cloudflare's free allowance is bounded and shared across models; it is not unlimited hosting. For Cloudflare Qwen3.8, the adapter sets `chat_template_kwargs.enable_thinking=false` and allows 1,536 output tokens for concise evidence answers. Generation has a 60-second timeout, inside the chat function's 180-second budget. Source fallback messages distinguish provider timeouts, quota/access errors and invalid citations. A key being configured does not guarantee that every provider request will succeed.
+Cloudflare's free allowance is bounded and shared across models; it is not unlimited hosting. For Cloudflare Qwen3.8, the adapter sets `chat_template_kwargs.enable_thinking=false` and allows 1,024 output tokens for concise replies. Public chat streams text as it arrives; it does not need another provider or API key. Generation has a 60-second timeout, inside the chat function's 180-second budget. Source fallback messages distinguish provider timeouts, quota/access errors and invalid citations. A key being configured does not guarantee that every provider request will succeed.
 
 The database expects 1,024-dimensional embeddings. The selected Qwen3 embedding model matches that shape; the application validates every vector. If changing the embedding model, re-index documents before expecting their vectors to match new queries. The document list displays the model used for each upload.
 
