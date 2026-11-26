@@ -20,3 +20,27 @@
 .trip-total>p+p,.trip-total>a{margin-top:12px}
 .trip-layout{align-items:start}
 .zone-forecast .segmented{flex-wrap:wrap}
+/* Forecast controls stay visible above the map on desktop and mobile. */
+.forecast-panel{margin-bottom:24px}
+.forecast-zone{display:flex;align-items:center;gap:10px;font-size:10px;color:var(--muted)}
+.forecast-zone select{max-width:230px}
+.forecast-controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:0 21px 18px;font-size:11px}
+.forecast-horizons{flex-wrap:wrap;gap:5px}
+.forecast-horizons button{font-size:11px;min-height:36px;padding:8px 13px}
+.forecast-controls>.button{margin-left:auto}
+.forecast-summary{padding:18px 21px;background:var(--soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.forecast-summary strong{font-family:Manrope,sans-serif;font-size:28px;font-weight:600}
+.forecast-summary small{font:400 12px 'DM Sans',sans-serif}
+.forecast-summary p{font-size:11px;line-height:1.8;margin-top:5px}
+.forecast-comparison{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;padding:18px 21px;margin:0}
+.forecast-comparison>div{border:1px solid var(--line);border-radius:7px;padding:12px}
+.forecast-comparison>div.selected{border-color:var(--green);background:var(--soft)}
+.forecast-comparison dt{font-size:11px;color:#62775b}
+.forecast-comparison dd{margin:8px 0 0;font-size:20px;font-weight:600}
+.forecast-comparison dd small{font-size:9px;font-weight:400}
+.forecast-comparison .forecast-target{font-size:9px;font-weight:400;line-height:1.7;color:#62775b}
+.forecast-provenance{padding:0 21px 20px;font-size:10px;line-height:1.8;color:#62775b}
+.chat-privacy{font-size:9px;color:#62775b;padding:0 18px 16px;line-height:1.8}
+.chat-privacy summary{cursor:pointer}
+.chat-privacy p{margin-top:7px}
+@media(max-width:700px){.forecast-panel .panel-heading{align-items:flex-start;flex-direction:column}.forecast-zone{width:100%}.forecast-zone select{flex:1;min-width:0;max-width:none}.forecast-controls{gap:10px}.forecast-controls>span{width:100%}.forecast-controls>.button{margin-left:0}.forecast-horizons{width:100%}.forecast-horizons button{flex:1;padding:8px 5px}.forecast-comparison{grid-template-columns:repeat(2,minmax(0,1fr))}}

@@ -34,6 +34,8 @@ Set `QWEN_API_KEY`, `QWEN_BASE_URL` and `QWEN_MODEL`. Defaults target Alibaba Cl
 
 Production paid generation also requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. Limits are atomic across Vercel instances (15 requests/minute/IP); a missing limiter disables paid generation. Retrieval draws from versioned methodology/research/fare documents plus current official alerts with URLs and timestamps. Answers cite retrieved evidence. Arrival predictions are requested through the station selector and are not invented by the assistant.
 
+Retrieval currently uses lexical ranking, with no embeddings, persistent chat memory or application accounts. See [RAG storage and personal-use plan](docs/RAG_STORAGE_AND_PRIVACY.md) for the database, reusable embeddings, private files, ownership checks and deletion flow needed before adding personal data.
+
 ## Deploy to Vercel
 
 1. Import this GitHub repository in Vercel. Select this branch or merge the reviewed change first. Framework: **Next.js**, root: repository root, install: `npm ci`, build: `npm run build`. Choose Node 24 for parity with validation (Node 22+ supported).
@@ -51,11 +53,13 @@ Set the server-only `MAPBOX_ACCESS_TOKEN` to use Mapbox Directions. If you alrea
 
 The [MTA relief-zone geofence](https://data.ny.gov/d/srxy-5nxn) is stored in `data/congestion-relief-zone.json`. Crossing tariffs are based on the [MTA E-ZPass tariff](https://www.mta.info/document/186876) and [Port Authority E-ZPass rates](https://www.panynj.gov/bridges-tunnels/en/tolls.html). Review these when toll rates change.
 
-The existing model service forecasts hourly pickups by zone. Live pickup demand appears as separate trip context and does not change the regulated fare. A 24-hour checkpoint is required to show all five demand horizons.
+The model forecasts hourly pickups by zone. Demand does not change the regulated fare. The bundled ONNX export already supports all five demand horizons; an external service must also provide those horizons to fill every result.
 
 ## Colab model replay
 
 `/api/forecast` runs the exported Residual Graph (OD + correlation) model on a held-out 2025 TLC observation window. It returns 1, 3, 6, 12, and 24-hour pickup predictions for 263 zones in historical mode. This uses the fixed 168-hour input and feature order in the Colab export. The forecast time is the end of that observed window. The server-only `COLAB_HISTORICAL_INPUT_GZIP` setting holds the gzip-compressed, base64-encoded request. The request must include an ISO 8601 origin with a UTC offset. Supply `MODEL_SERVICE_URL` and `MODEL_SERVICE_TOKEN` to use the live-model service with fresh observations.
+
+In Overview, **Taxi demand forecast** appears above the map. Choose a taxi zone and **1, 3, 6, 12 or 24 hours** under Forecast ahead. The panel shows all five results, highlights the selected horizon, displays target dates in New York time, and exports the zone's available results with model/mode metadata. Each result is pickups for one target hour, not a cumulative total. Historical replay remains explicitly labeled and does not represent demand today. Forecast responses render independently of slower alert feeds.
 
 ## Train, audit and serve the models
 
