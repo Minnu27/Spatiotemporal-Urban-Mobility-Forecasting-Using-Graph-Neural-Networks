@@ -2,6 +2,8 @@
 
 This branch contains the application, model files, database migration and scripts. It implements **current-date demand estimates**, authentication, private knowledge storage/retrieval and optional saved history. It does not provision Supabase, purchase API access, train a new model or connect observed real-time pickups.
 
+Exact fields and copy/paste locations are in [CREDENTIALS.md](CREDENTIALS.md). Actual keys belong in Vercel or your ignored `.env.local`, never in a PR.
+
 ## 1. Install locally
 
 Use Node **24** and Git. Clone/download this branch and open its root directory.
@@ -11,14 +13,14 @@ Windows PowerShell:
 ```powershell
 $env:ONNXRUNTIME_NODE_INSTALL="skip"
 npm ci
-Copy-Item .env.example .env.local
+if (!(Test-Path .env.local)) { Copy-Item .env.example .env.local }
 ```
 
 macOS/Linux:
 
 ```bash
 ONNXRUNTIME_NODE_INSTALL=skip npm ci
-cp .env.example .env.local
+test -f .env.local || cp .env.example .env.local
 ```
 
 Edit `.env.local` locally. Keep credentials out of Git/chat and preserve existing Mapbox/provider values in Vercel. Never replace working secrets with blank examples.
@@ -26,7 +28,7 @@ Edit `.env.local` locally. Keep credentials out of Git/chat and preserve existin
 ## 2. Create Supabase and approve your account
 
 1. Create a Supabase project directly or through Vercel Marketplace. Choose the region/plan. Use separate projects for preview/development and production personal data.
-2. In its **SQL Editor**, run the complete file `supabase/migrations/202611260001_private_workspace.sql` once on a **fresh project**. This creates pgvector, tables/functions/RLS and the private `rag-private` Storage bucket. Do not repeatedly run the migration or delete an existing database to resolve errors.
+2. On a **fresh project**, run `supabase/migrations/202611260001_private_workspace.sql` once, then run `supabase/migrations/202611260002_setup_access.sql`. Existing PR #8 installations run only the second file. It is an idempotent access-grant repair that preserves data and RLS. Run `supabase/verify-setup.sql` afterward: all tables must exist with RLS enabled, expected function permissions must match actual permissions, and the embedding column must be vector(1024). Do not repeatedly run the initial table-creation migration on an existing database.
 3. In **Authentication → Users**, create your email/password account. Disable public signup and anonymous sign-ins in Authentication settings; configure password/rate-limit protections and the actual site URL. This app uses password login, with no OAuth callback requirement.
 4. Copy that user's UUID, substitute it below, and run:
 
@@ -42,7 +44,7 @@ on conflict(user_id) do update set enabled=true;
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase Project URL; public configuration. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key; legacy anon key also works. Requires the RLS policies above. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase legacy service_role API key; server only, for archive/cleanup/anonymous limits. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase modern sb_secret_ key or legacy service_role JWT; server only, for archive/cleanup/anonymous limits. |
 | `MAINTENANCE_TOKEN` | A new random secret for the cleanup endpoint. |
 | `RATE_LIMIT_SALT` | A different random secret, at least 32 characters, for anonymous limit identifiers. |
 
@@ -54,24 +56,26 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 For personal use, approve only your own account. Revoke membership with `app_members.enabled=false`; API/RLS checks it on subsequent requests. For permanent account deletion, remove its documents through the workspace/maintenance before deleting the Auth user: deleting an Auth row alone does not remove Storage objects.
 
-## 3. Enable embeddings and Qwen
+## 3. Enable open Qwen models through Cloudflare
 
-Enable the relevant models in your Alibaba Cloud Model Studio account/region, then configure:
+Create a Cloudflare account and open **Workers AI → Use REST API**. Use the prefilled Workers AI API-token template and copy the Account ID. Add these in Vercel Production and in your local development environment as appropriate:
 
 ```dotenv
-QWEN_API_KEY=YOUR_SERVER_KEY
-QWEN_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
-QWEN_MODEL=qwen-plus
-EMBEDDING_MODEL=text-embedding-v4
+QWEN_API_KEY=YOUR_CLOUDFLARE_WORKERS_AI_TOKEN
+QWEN_BASE_URL=https://api.cloudflare.com/client/v4/accounts/YOUR_ACCOUNT_ID/ai/v1
+QWEN_MODEL=@cf/qwen/qwen3.8-27b
+EMBEDDING_MODEL=@cf/qwen/qwen3-embedding-0.6b
 ```
 
-Optionally set `EMBEDDING_API_KEY` / `EMBEDDING_BASE_URL` separately; otherwise they reuse the Qwen key/base. Embeddings are **1,024-dimensional**. Changing the dimension requires a migration and rebuilding stored vectors. Changing the model/provider requires re-embedding documents; use a distinct model identifier for each provider/version. A chat model is not an embedding model.
+Replace YOUR_ACCOUNT_ID with the 32-character Cloudflare Account ID. Include the leading @ in both model IDs. The key/base are shared with embeddings unless EMBEDDING_API_KEY / EMBEDDING_BASE_URL are set separately. Full field-by-field instructions are in [CREDENTIALS.md](CREDENTIALS.md).
 
-Without Qwen, the app uses cited source excerpts. Personal ingestion/search still needs an embedding key. Public chat requires shared limits even for excerpts: Supabase service key + salt is sufficient; Upstash URL/token is an optional alternative. Private quotas always use Postgres. Missing/unavailable limits reject requests before provider calls.
+The application requests 1,024-dimensional vectors and validates their shape and order. Cloudflare Qwen requests use low reasoning effort and a 4,096-token completion budget; other compatible chat providers retain the original request format. Empty, truncated or invalidly cited answers fall back to source excerpts.
 
-Review external-provider data handling and region before using personal information. Uploaded text goes to the embedding provider; Qwen receives the question, matching excerpts and recent saved conversation context. The application does not configure provider retention.
+Provider free allowances are limited; requests may be rejected after quota exhaustion. Keep provider tokens server-only and review processing/region settings before submitting personal documents. The provider connection test sends fixed non-personal text only; actual RAG sends retrieved excerpts and saved context as explained in the UI.
 
-## 4. Use current-date demand estimates
+Supabase service key + salt supplies public limits; Upstash remains an optional public alternative. Private upload/search/chat/history and setup checks use atomic database account quotas. Missing/unavailable limits reject provider requests.
+
+## 4. Use current-date demand estimates (profile refresh is optional)
 
 ```dotenv
 FORECAST_MODE=estimate
@@ -85,7 +89,7 @@ The original GNN uses 168 current-date input hours built from historical hour-of
 
 For estimate mode, the model's origin is the start of the current hour; its input includes an assumed full pickup count for that in-progress hour. A horizon predicts **one target hour**, not cumulative pickups or necessarily a departure that many hours from this instant. API/evidence show mode, source, origin and target. Trip-cost departure controls separately use the actual current time plus the selected hours.
 
-The bundled reference is one real held-out week ending February 7, 2025: enough to run the estimate path, but a weak seasonal baseline. Replace it with your actual full-year hourly dataset in Colab or Python:
+The bundled reference is one real held-out week ending February 7, 2025: enough to run the estimate path, but a weak seasonal baseline. This setup change leaves that reference unchanged. When you choose to refresh it, run the existing exporter against your actual full-year hourly dataset in Colab or Python:
 
 ```bash
 python -m pip install pandas numpy pyarrow
@@ -113,9 +117,11 @@ npm start
 
 Use `npm run dev` for development. Only in the managed cloud proxy environment, prefix Node commands with `NODE_USE_ENV_PROXY=1`; normal local/Vercel deployments do not need it.
 
-`check:setup` reads `.env.local` and reports names/status without secret values. It checks migrated tables, private bucket, public limiter and the current estimate. It cannot replace sign-in and two-account deployment checks.
+`check:setup` reads `.env.local` without printing secret values. It validates URL/key formats, connects to the database, checks the private bucket and public limiter, checks personal-use signup settings, and runs the current estimate. `--providers` verifies a nonzero 1,024-dimensional vector and a real nonempty chat test response; it does not accept a mere choices array as success. `--json` produces a report suitable for sharing without credentials. It cannot replace two-account deployment checks.
 
-Open `http://localhost:3000/workspace`. Sign in, upload a harmless .txt/.md file after checking consent, and ask something unique to that file. The optional Search archived alerts setting retrieves saved source snapshots with explicit historical labels. Saving is off by default. Enable Save for new exchanges; reload, reopen and export/delete that conversation. Documents and opted-in chats persist across redeploys in Supabase.
+Open `http://localhost:3000/workspace`. After signing in, expand **Connection checks** and run the check. If login itself fails, use the local checker or SQL verification first. The AI checkbox explicitly approves two fixed-text provider requests; it is off by default. The endpoint requires an approved session, matching Origin and account quota before provider calls. Repair any failed item using its displayed action.
+
+Then use the workspace. Sign in, upload a harmless .txt/.md file after checking consent, and ask something unique to that file. The optional Search archived alerts setting retrieves saved source snapshots with explicit historical labels. Saving is off by default. Enable Save for new exchanges; reload, reopen and export/delete that conversation. Documents and opted-in chats persist across redeploys in Supabase.
 
 | Acceptance check | Expected result |
 | --- | --- |
@@ -152,9 +158,9 @@ Enable Actions, run **Private data maintenance → Run workflow** once and monit
 
 Documents expire 90 days after creation, conversations 30 days after creation, archive snapshots 30 days after last refresh. New chat exchanges do not extend conversation expiry. Expired data is excluded from retrieval immediately; physical objects require cleanup, and provider backups have separate retention. Archive sampling cannot recover changes missed during outages.
 
-## 7. Deploy
+## 7. Deploy the follow-up
 
-Merge this branch after setting the matching Vercel environment. Keep Node 24, Next.js, repository-root build, and the supplied `vercel.json` install/build commands. Both `NEXT_PUBLIC_SUPABASE_*` settings must exist **before the build**; redeploy after changing them. Server-only settings must be present in the deployment environment. Preserve working routing tokens.
+PR #8 is already merged; merge the follow-up change after reviewing it and setting the matching Vercel environment. Keep Node 24, Next.js, repository-root build, and the supplied `vercel.json` install/build commands. Both `NEXT_PUBLIC_SUPABASE_*` settings must exist **before the build**; redeploy after changing them. Server-only settings must be present in the deployment environment. Preserve working routing tokens.
 
 Repeat section 5 after deployment. A successful build does not activate a database/provider/scheduler. For an entirely personal-only website, additionally enable Vercel deployment protection on every alias: application login protects personal data, while mobility pages remain public.
 
@@ -163,7 +169,10 @@ Repeat section 5 after deployment. A successful build does not activate a databa
 | File | Action |
 | --- | --- |
 | `.env.example` | Copy to .env.local; fill settings privately. |
-| `supabase/migrations/202611260001_private_workspace.sql` | Run once in the fresh Supabase SQL Editor. |
+| `supabase/migrations/202611260001_private_workspace.sql` | Fresh project only: run once. |
+| `supabase/migrations/202611260002_setup_access.sql` | Existing PR #8 and fresh projects: apply access grants; safe to rerun. |
+| `supabase/verify-setup.sql` | Read-only schema/RLS/function checks in SQL Editor. |
+| `docs/CREDENTIALS.md` | Exact names, values and paste locations; never put key values in PRs. |
 | `scripts/check-setup.ts` | Run npm run check:setup; optional -- --providers. |
 | `scripts/export-reference-profile.py` | Run against real full-year hourly counts; commit aggregate output. |
 | `scripts/maintenance.mjs` | Run npm run maintenance or schedule it. |

@@ -7,7 +7,8 @@ import { vector } from '@electric-sql/pglite-pgvector';
 test('Postgres RLS isolates documents, embeddings, files and chat; limits are shared and atomic',async()=>{
  const pg=await PGlite.create({extensions:{vector}});
  try{
-  await pg.exec(`create role authenticated nologin;create role service_role bypassrls nologin;
+  await pg.exec(`create role authenticated nologin;create role service_role bypassrls nologin;create role anon nologin;
+   revoke usage on schema public from public;
    create schema auth;create table auth.users(id uuid primary key);
    create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
    grant usage on schema auth to authenticated,service_role;
@@ -18,6 +19,15 @@ test('Postgres RLS isolates documents, embeddings, files and chat; limits are sh
    grant usage on schema storage to authenticated;grant select,insert,update,delete on storage.objects to authenticated;
   `);
   await pg.exec(await readFile('supabase/migrations/202611260001_private_workspace.sql','utf8'));
+  // Older Supabase projects can grant anon explicit function execution by default.
+  await pg.exec('grant execute on all functions in schema public to anon');
+  const repair=await readFile('supabase/migrations/202611260002_setup_access.sql','utf8');
+  await pg.exec(repair);await pg.exec(repair); // Idempotent on an existing installation.
+  const reports=await pg.exec(await readFile('supabase/verify-setup.sql','utf8'));
+  assert.ok(reports[0].rows.every((row:Record<string,unknown>)=>row.exists&&row.rls_enabled));
+  assert.ok(reports[1].rows.every((row:Record<string,unknown>)=>row.public_schema_usage&&row.extensions_schema_usage));
+  assert.ok(reports[2].rows.every((row:Record<string,unknown>)=>row.expected_execute===row.actual_execute));
+  assert.match(String(reports[3].rows[0].embedding_column_type),/vector\(1024\)/);
   const a='11111111-1111-4111-8111-111111111111',b='22222222-2222-4222-8222-222222222222',c='33333333-3333-4333-8333-333333333333';
   const doc='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',conversation='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
   await pg.query('insert into auth.users values($1),($2),($3)',[a,b,c]);

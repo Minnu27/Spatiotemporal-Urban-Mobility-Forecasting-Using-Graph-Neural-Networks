@@ -1,6 +1,7 @@
 -- Run once in a new Supabase project's SQL editor as the database owner.
 create schema if not exists extensions;
 create extension if not exists vector with schema extensions;
+grant usage on schema public,extensions to authenticated,service_role;
 
 create table public.app_members (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -12,7 +13,7 @@ grant select on public.app_members to authenticated;
 create function public.is_app_member() returns boolean language sql stable security definer set search_path=public as $$
   select exists(select 1 from public.app_members where user_id=auth.uid() and enabled)
 $$;
-revoke all on function public.is_app_member() from public;
+revoke all on function public.is_app_member() from public,anon;
 grant execute on function public.is_app_member() to authenticated;
 
 create table public.rag_documents (
@@ -65,7 +66,7 @@ begin
       (c->>'embedding')::extensions.vector,d.embedding_model from jsonb_array_elements(p_chunks) c;
   update public.rag_documents set status='ready' where id=d.id;
 end $$;
-revoke all on function public.commit_document(uuid,jsonb) from public;
+revoke all on function public.commit_document(uuid,jsonb) from public,anon;
 grant execute on function public.commit_document(uuid,jsonb) to authenticated;
 
 create function public.search_private_chunks(p_query text,p_vector extensions.vector(1024),p_model text,p_limit int default 5)
@@ -88,7 +89,7 @@ language sql stable security invoker set search_path=public,extensions as $$
   ) select e.id,e.document_id,e.title,e.content,e.ordinal,f.score::double precision
     from fused f join eligible e on e.id=f.id order by f.score desc,e.id limit least(greatest(p_limit,1),8)
 $$;
-revoke all on function public.search_private_chunks(text,extensions.vector,text,int) from public;
+revoke all on function public.search_private_chunks(text,extensions.vector,text,int) from public,anon;
 grant execute on function public.search_private_chunks(text,extensions.vector,text,int) to authenticated;
 
 create table public.conversations (
@@ -125,7 +126,7 @@ begin
     (p_id,auth.uid(),'user',p_question,'[]'),(p_id,auth.uid(),'assistant',p_answer,p_citations);
   update public.conversations set updated_at=now() where id=p_id;
 end $$;
-revoke all on function public.save_chat_turn(uuid,text,text,jsonb) from public;
+revoke all on function public.save_chat_turn(uuid,text,text,jsonb) from public,anon;
 grant execute on function public.save_chat_turn(uuid,text,text,jsonb) to authenticated;
 
 create table public.request_limits (
@@ -153,7 +154,7 @@ begin
     where request_limits.used<limit_per_day returning used into n;
   return n is not null;
 end $$;
-revoke all on function public.consume_app_limit(text) from public;
+revoke all on function public.consume_app_limit(text) from public,anon;
 grant execute on function public.consume_app_limit(text) to authenticated;
 
 -- Only the server may consume anonymous limits; no raw IP addresses are stored.
@@ -172,7 +173,7 @@ declare n int;begin
  where public_request_limits.used<15 returning used into n;
  return n is not null;
 end $$;
-revoke all on function public.consume_public_limit(text) from public,authenticated;
+revoke all on function public.consume_public_limit(text) from public,anon,authenticated;
 grant execute on function public.consume_public_limit(text) to service_role;
 
 create table public.incident_archive (
@@ -206,5 +207,9 @@ language sql stable security definer set search_path=public as $$
  where o.bucket_id='rag-private' and d.id is null and o.created_at<now()-interval '1 hour'
  order by o.created_at limit 50
 $$;
-revoke all on function public.orphan_private_objects() from public,authenticated;
+revoke all on function public.orphan_private_objects() from public,anon,authenticated;
 grant execute on function public.orphan_private_objects() to service_role;
+
+-- RLS remains the row boundary; anonymous callers also have no table grants.
+revoke all on public.app_members,public.rag_documents,public.rag_chunks,public.conversations,
+ public.messages,public.request_limits,public.public_request_limits,public.incident_archive from anon;

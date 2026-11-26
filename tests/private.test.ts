@@ -5,6 +5,7 @@ import {answerFromEvidence,citationsValid} from '../lib/answer';
 import {POST as chat} from '../app/api/chat/route';
 import {GET as documents,POST as upload} from '../app/api/documents/route';
 import {POST as maintenance} from '../app/api/maintenance/route';
+import {POST as setup} from '../app/api/setup/route';
 import {boundedText,requireOrigin} from '../lib/private/http';
 test('chunks preserve normalized source offsets and reusable hashes',()=>{
  const text='A paragraph.\r\n'.repeat(320),{normalized,chunks}=chunkText(text);
@@ -34,7 +35,7 @@ test('private operations and public retrieval fail closed without configuration'
  const previous=names.map(name=>process.env[name]);names.forEach(name=>delete process.env[name]);
  const request=(body:unknown)=>new Request('https://urbanflow.example/api/chat',{method:'POST',headers:{origin:'https://urbanflow.example','Content-Type':'application/json'},body:JSON.stringify(body)});
  try{
-  for(const response of [await documents(),await chat(request({question:'Private notes?',scope:'private'})),await chat(request({question:'Public alerts?'})),await upload(request({text:'private'}))]){
+  for(const response of [await documents(),await chat(request({question:'Private notes?',scope:'private'})),await chat(request({question:'Public alerts?'})),await upload(request({text:'private'})),await setup(request({providers:true,consent:true}))]){
    assert.equal(response.status,503);assert.equal(response.headers.get('Cache-Control'),'private, no-store');
   }
   assert.equal((await maintenance(new Request('https://urbanflow.example/api/maintenance',{method:'POST'}))).status,401);

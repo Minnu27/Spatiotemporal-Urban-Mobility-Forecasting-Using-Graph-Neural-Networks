@@ -1,6 +1,9 @@
+export class UpstreamError extends Error {
+  constructor(public status:number){super(`Upstream returned HTTP ${status}`);}
+}
 export async function fetchBounded(url: string, init: RequestInit = {}, maxBytes = 2_000_000, timeoutMs = 12_000): Promise<Uint8Array> {
   const response = await fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs), cache: 'no-store', redirect: 'error' });
-  if (!response.ok) throw new Error(`Upstream returned HTTP ${response.status}`);
+  if (!response.ok) throw new UpstreamError(response.status);
   if (Number(response.headers.get('content-length')) > maxBytes) throw new Error('Upstream response too large');
   const reader = response.body?.getReader();
   if (!reader) throw new Error('Empty upstream response');
