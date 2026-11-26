@@ -69,12 +69,12 @@ export default function FareEstimator() {
     <div className="fare-layout trip-layout">
       <div className="trip-fields">
         <label>Pickup location
-          <select value={pickup} onChange={event => setPickup(event.target.value)}>
+          <select aria-label="Pickup location" value={pickup} onChange={event => setPickup(event.target.value)}>
             <ZoneOptions />
           </select>
         </label>
         <label>Drop-off location
-          <select value={dropoff} onChange={event => setDropoff(event.target.value)}>
+          <select aria-label="Drop-off location" value={dropoff} onChange={event => setDropoff(event.target.value)}>
             <ZoneOptions allowNewark />
           </select>
         </label>
