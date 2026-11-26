@@ -1,60 +1,37 @@
 import { test, expect } from '@playwright/test';
 const baseUrl = process.env.TEST_BASE_URL || 'http://127.0.0.1:3000';
-const forecastFixture = {
- mode: 'historical', model: 'Residual Graph (OD + correlation)', issuedAt: '2025-02-07T23:00:00-05:00',
- historySource: 'Held-out observations', message: 'Historical replay',
- rows: [1,3,6,12,24].flatMap(horizon => [161,132].map(zoneId => ({
-  zoneId, horizon, value: zoneId === 161 ? horizon * 10 : 0,
- }))),
-};
-
-test('all five horizons render independently of alerts, follow the zone and export dated results', async ({page}) => {
- let releaseAlerts!: () => void;
- const alertsReady = new Promise<void>(resolve => { releaseAlerts = resolve; });
- await page.route('**/api/alerts', async route => {
-  await alertsReady;
-  await route.fulfill({json:{incidents:[],feeds:[],fetchedAt:'2026-11-25T23:00:00Z'}});
- });
- await page.route('**/api/forecast', route => route.fulfill({json:forecastFixture}));
- await page.goto(baseUrl);
- const panel = page.getByRole('region',{name:'Taxi demand forecast'});
- // The alerts request is deliberately pending: it must not block forecast results.
- await expect(panel.getByRole('status')).toContainText('10 predicted pickups', {timeout:10000});
- releaseAlerts();
- const controls = panel.getByRole('group',{name:'Forecast ahead'});
- for (const horizon of [1,3,6,12,24]) {
-  const button = controls.getByRole('button',{name:`${horizon} ${horizon === 1 ? 'hour' : 'hours'}`,exact:true});
-  await button.click();
-  await expect(button).toHaveAttribute('aria-pressed','true');
-  await expect(panel.getByRole('status')).toContainText(`${horizon * 10} predicted pickups`);
- }
- await expect(panel.getByRole('status')).toContainText('Feb 8, 2025, 11:00 PM EST');
- await expect(panel).toContainText('not a forecast for today');
- const downloadReady = page.waitForEvent('download');
- await panel.getByRole('button',{name:'Export forecast'}).click();
- const download = await downloadReady;
- const {readFile} = await import('node:fs/promises');
- const exported = JSON.parse(await readFile((await download.path())!, 'utf8'));
- expect(exported.mode).toBe('historical');
- expect(exported.predictions.map((row:{horizon:number})=>row.horizon)).toEqual([1,3,6,12,24]);
- expect(exported.predictions[4]).toEqual({horizon:24,targetHour:'2025-02-09T04:00:00.000Z',pickups:240});
- await page.getByLabel('Choose taxi zone').selectOption('132');
- await expect(panel.getByLabel('Forecast taxi zone')).toHaveValue('132');
- await expect(panel.getByRole('status')).toContainText('0 predicted pickups');
-});
-
-test('missing horizons are unavailable and mobile controls fit the viewport', async ({page}) => {
- await page.setViewportSize({width:390,height:844});
+test('departure choices appear in Trip costs and refresh the selected route, price and weather', async ({page}) => {
  await page.route('**/api/alerts',route=>route.fulfill({json:{incidents:[],feeds:[],fetchedAt:''}}));
- await page.route('**/api/forecast',route=>route.fulfill({json:{...forecastFixture,mode:'live',issuedAt:new Date().toISOString(),rows:forecastFixture.rows.filter(row=>row.horizon===1)}}));
+ const requests:number[]=[];
+ await page.route('**/api/fare',async route=>{
+  const {horizon,pickup,dropoff}=route.request().postDataJSON();requests.push(horizon);
+  const departure=new Date(Date.parse('2026-11-25T15:00:00Z')+horizon*3600000).toISOString();
+  const hour={zoneId:pickup,zone:'Midtown Center',at:departure,fetchedAt:'2026-11-25T15:00:00Z',temperatureC:12-horizon,precipitationMm:horizon,snowfallCm:0,windKph:12,code:61,condition:'Light rain'};
+  await route.fulfill({json:{total:20+horizon,maximum:20+horizon,planningMinimum:20+horizon,planningMaximum:25+horizon,
+   departure,basis:'route',breakdown:[{label:'Initial charge',amount:3}],route:{miles:5,minutes:30,traffic:'departure-time'},
+   weather:{state:'forecast',departure,source:'https://open-meteo.com/',pickup:hour,dropoff:{...hour,zoneId:dropoff,zone:'JFK Airport'}},
+   weatherAdjustment:{state:'applied',source:'https://ops.fhwa.dot.gov/weather/roadimpact.htm',fareMinimum:22+horizon,fareMaximum:25+horizon,minutesMinimum:32,minutesMaximum:35},
+  }});
+ });
  await page.goto(baseUrl);
- const panel=page.getByRole('region',{name:'Taxi demand forecast'});
- await expect(panel.getByRole('status')).toContainText('10 predicted pickups');
- await panel.getByRole('button',{name:'24 hours',exact:true}).click();
- await expect(panel.getByRole('status')).toHaveText('Forecast unavailable for this zone and horizon.');
- await expect(panel).toContainText('Forecast based on recent observed demand.');
+ await expect(page.getByRole('heading',{name:'Taxi demand forecast'})).toHaveCount(0);
+ await expect(page.getByRole('group',{name:'Departure time'})).toHaveCount(0);
+ await page.getByRole('button',{name:'Trip costs',exact:true}).click();
+ await page.getByLabel('Pickup location',{exact:true}).selectOption('161');
+ await page.getByLabel('Drop-off location',{exact:true}).selectOption('132');
+ const total=page.locator('.trip-total');
+ await expect(total).toContainText('$21.00');
+ for(const hours of [1,3,6,12,24]){
+  const button=page.getByRole('button',{name:`${hours} ${hours===1?'hour':'hours'} ahead`,exact:true});
+  await button.click();await expect(button).toHaveAttribute('aria-pressed','true');
+  await expect(total).toContainText(`$${20+hours}.00`);
+  await expect(page.getByRole('heading',{name:'Weather at departure'})).toBeVisible();
+  await expect(page.locator('.trip-weather')).toContainText(`Precipitation ${hours.toFixed(1)} mm`);
+ }
+ expect(requests).toEqual([1,3,6,12,24]);
+ await page.setViewportSize({width:390,height:844});
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();
- for (const hours of [1,3,6,12,24]) await expect(panel.getByRole('button',{name:`${hours} ${hours===1?'hour':'hours'}`,exact:true})).toBeVisible();
+ for(const hours of [1,3,6,12,24])await expect(page.getByRole('button',{name:`${hours} ${hours===1?'hour':'hours'} ahead`,exact:true})).toBeVisible();
 });
 
 test('dashboard navigation, map selection, research, fares and source chat',async({page})=>{

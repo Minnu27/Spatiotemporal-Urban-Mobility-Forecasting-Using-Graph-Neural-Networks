@@ -20,27 +20,23 @@
 .trip-total>p+p,.trip-total>a{margin-top:12px}
 .trip-layout{align-items:start}
 .zone-forecast .segmented{flex-wrap:wrap}
-/* Forecast controls stay visible above the map on desktop and mobile. */
-.forecast-panel{margin-bottom:24px}
-.forecast-zone{display:flex;align-items:center;gap:10px;font-size:10px;color:var(--muted)}
-.forecast-zone select{max-width:230px}
-.forecast-controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:0 21px 18px;font-size:11px}
-.forecast-horizons{flex-wrap:wrap;gap:5px}
-.forecast-horizons button{font-size:11px;min-height:36px;padding:8px 13px}
-.forecast-controls>.button{margin-left:auto}
-.forecast-summary{padding:18px 21px;background:var(--soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.forecast-summary strong{font-family:Manrope,sans-serif;font-size:28px;font-weight:600}
-.forecast-summary small{font:400 12px 'DM Sans',sans-serif}
-.forecast-summary p{font-size:11px;line-height:1.8;margin-top:5px}
-.forecast-comparison{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;padding:18px 21px;margin:0}
-.forecast-comparison>div{border:1px solid var(--line);border-radius:7px;padding:12px}
-.forecast-comparison>div.selected{border-color:var(--green);background:var(--soft)}
-.forecast-comparison dt{font-size:11px;color:#62775b}
-.forecast-comparison dd{margin:8px 0 0;font-size:20px;font-weight:600}
-.forecast-comparison dd small{font-size:9px;font-weight:400}
-.forecast-comparison .forecast-target{font-size:9px;font-weight:400;line-height:1.7;color:#62775b}
-.forecast-provenance{padding:0 21px 20px;font-size:10px;line-height:1.8;color:#62775b}
 .chat-privacy{font-size:9px;color:#62775b;padding:0 18px 16px;line-height:1.8}
 .chat-privacy summary{cursor:pointer}
 .chat-privacy p{margin-top:7px}
-@media(max-width:700px){.forecast-panel .panel-heading{align-items:flex-start;flex-direction:column}.forecast-zone{width:100%}.forecast-zone select{flex:1;min-width:0;max-width:none}.forecast-controls{gap:10px}.forecast-controls>span{width:100%}.forecast-controls>.button{margin-left:0}.forecast-horizons{width:100%}.forecast-horizons button{flex:1;padding:8px 5px}.forecast-comparison{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.trip-departure{border:0;padding:0;margin:0;min-width:0}
+.trip-departure legend{font-size:14px;font-weight:600;margin-bottom:10px}
+.trip-horizons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.trip-horizons button{border:1px solid #d5dfcd;border-radius:7px;background:#fff;min-height:44px;padding:9px 5px;font-size:11px}
+.trip-horizons button.active{background:#e8f0df;border-color:#527251;color:#294c36;font-weight:600}
+.trip-departure>p{font-size:11px;line-height:1.7;margin-top:10px;color:#6b7d61}
+.trip-weather{padding:20px;border-top:1px solid var(--line)}
+.trip-weather h3{font:600 14px Manrope,sans-serif;margin:0}
+.trip-weather p{font-size:11px;line-height:1.8;margin-top:7px;color:#607652}
+.trip-weather-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:15px}
+.trip-weather-card{min-width:0;border:1px solid var(--line);border-radius:8px;padding:15px;background:#f9fbf6}
+.trip-weather-card h4{margin:0 0 10px;font-size:11px;font-weight:500}
+.trip-weather-card strong{font-size:15px;font-weight:600}
+.trip-weather-card small{display:block;font-size:9px;line-height:1.8;color:#708163;margin-top:8px}
+.weather-sources{display:flex;gap:16px;flex-wrap:wrap;font-size:10px;margin-top:12px;color:#47683b}
+.weather-price-note{background:#e9f0df;padding:12px;border-radius:6px}
+@media(max-width:700px){.trip-weather-grid{grid-template-columns:1fr}.trip-horizons{grid-template-columns:repeat(2,minmax(0,1fr))}}

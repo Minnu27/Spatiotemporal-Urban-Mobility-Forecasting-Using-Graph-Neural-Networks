@@ -1,4 +1,5 @@
 import { calculateQuote, findTrip, quoteInput, routeMeter, routingProvider, usesJfkFlatRate } from '@/lib/trip-fare';
+import { planTrip } from '@/lib/trip-planning';
 
 export const dynamic = 'force-dynamic';
 
@@ -7,7 +8,7 @@ function reply(data: object, status = 200) {
 }
 
 export async function POST(request: Request) {
-  const now = Date.now();
+  const now = Math.floor(Date.now()/1000)*1000;
   const origin = request.headers.get('origin');
   const host = request.headers.get('host') ?? new URL(request.url).host;
   if (origin && URL.parse(origin)?.host !== host) return reply({ error: 'Cross-origin request rejected.' }, 403);
@@ -28,12 +29,12 @@ export async function POST(request: Request) {
     return reply({ error: 'Choose a different drop-off zone. A zone-to-zone estimate needs two distinct locations.' }, 422);
   }
   const provider = routingProvider();
-  if (!provider && usesJfkFlatRate(trip)) return reply(calculateQuote(input, trip, null, now));
+  if (!provider && usesJfkFlatRate(trip)) return reply(await planTrip(input, trip, null, now));
   if (!provider) return reply({ error: 'Route estimates are temporarily unavailable.' }, 503);
 
   try {
-    const route = await routeMeter(trip, provider);
-    return reply(calculateQuote(input, trip, route, now));
+    const route = await routeMeter(trip, provider,now+input.horizon*3600_000);
+    return reply(await planTrip(input, trip, route, now));
   } catch {
     return reply({ error: 'A road route was unavailable. Try again or choose another location.' }, 502);
   }
