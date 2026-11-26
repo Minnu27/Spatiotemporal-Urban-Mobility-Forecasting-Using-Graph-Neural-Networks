@@ -38,14 +38,36 @@ test('dashboard navigation, map selection, research, fares and source chat',asyn
  await page.route('**/api/chat',route=>route.fulfill({json:{mode:'sources',answer:'Archived model comparison [1].',citations:[{index:1,title:'Model comparison: best saved results',url:'https://github.com/Minnu27/Spatiotemporal-Urban-Mobility-Forecasting-Using-Graph-Neural-Networks'}]}}));
  await page.goto((process.env.TEST_BASE_URL || 'http://127.0.0.1:3000'));await expect(page.getByRole('heading',{name:'The city, connected.'})).toBeVisible();
  await page.getByLabel('Choose taxi zone').selectOption('132');await expect(page.getByText('Queens',{exact:true}).last()).toBeVisible();
- await page.getByRole('button',{name:'Research',exact:true}).click();await expect(page.getByRole('heading',{name:'Model comparison'})).toBeVisible();await expect(page.getByText('3.528',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Research',exact:true}).click();await expect(page.getByRole('heading',{name:'Model comparison'})).toBeVisible();await expect(page.getByText('3.528',{exact:true})).not.toBeVisible();await page.getByText('Archived results before preprocessing corrections',{exact:true}).click();await expect(page.getByText('3.528',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Trip costs',exact:true}).click();await page.getByLabel('Pickup location').selectOption('132');
  await page.getByLabel('Drop-off location').selectOption('161');
  await expect(page.getByRole('combobox')).toHaveCount(2);
  await expect(page.getByText('JFK–Manhattan flat fare',{exact:true})).toBeVisible();
  await expect(page.getByText('$70.00',{exact:true})).toBeVisible();
- await page.getByRole('button',{name:'Which model performed best?'}).click();await page.getByRole('button',{name:'Send question'}).click();await expect(page.getByText('Retrieved source excerpts',{exact:true})).toBeVisible({timeout:30000});await expect(page.getByRole('link',{name:/Model comparison: best saved results/})).toBeVisible();
+ await page.getByRole('textbox',{name:'Ask UrbanFlow',exact:true}).fill('Which model performed best?');await page.getByRole('button',{name:'Send question'}).click();await expect(page.getByText('Retrieved sources',{exact:true})).toBeVisible({timeout:30000});await expect(page.getByRole('link',{name:/Model comparison: best saved results/})).toBeVisible();
  await page.getByRole('button',{name:'Disruptions',exact:false}).first().click();await expect(page.getByRole('heading',{name:'Official disruption reports'})).toBeVisible();
+});
+test('custom questions, follow-ups and transcript survive navigation until New chat',async({page})=>{
+ await page.route('**/api/alerts',route=>route.fulfill({json:{incidents:[],feeds:[],fetchedAt:''}}));
+ const requests:{question:string;history:{role:string;body:string}[]}[]=[];
+ await page.route('**/api/chat',async route=>{
+  const input=route.request().postDataJSON();requests.push(input);
+  const answer=requests.length===1?'A graph connects related objects.':'In a city, stations are nodes and tracks are edges.';
+  await route.fulfill({contentType:'application/x-ndjson',body:[{type:'delta',text:answer.slice(0,10)},{type:'done',reply:{answer,mode:'general',notice:'General conversation.',citations:[]}}].map(event=>JSON.stringify(event)+'\n').join('')});
+ });
+ await page.goto(baseUrl);
+ const question=page.getByRole('textbox',{name:'Ask UrbanFlow',exact:true});
+ await question.fill('What is a graph neural network?');await question.press('Enter');
+ const log=page.getByRole('log',{name:'Chat conversation'});
+ await expect(log).toContainText('A graph connects related objects.');
+ await question.fill('Explain it with a city example');await question.press('Enter');
+ await expect(log).toContainText('stations are nodes');
+ expect(requests[1].history).toEqual([{role:'user',body:'What is a graph neural network?'},{role:'assistant',body:'A graph connects related objects.'}]);
+ await page.getByRole('button',{name:'Research',exact:true}).click();
+ await expect(page.getByRole('log',{name:'Chat conversation'})).toContainText('stations are nodes');
+ await page.getByRole('button',{name:'New chat',exact:true}).click();
+ await expect(page.getByRole('log',{name:'Chat conversation'})).toHaveCount(0);
+ await expect(page.getByRole('textbox',{name:'Ask UrbanFlow',exact:true})).toHaveValue('');
 });
 test('unconfigured private workspace explains setup without exposing personal content',async({page})=>{
  await page.route('**/api/account',route=>route.fulfill({json:{configured:false,authenticated:false}}));
@@ -56,5 +78,5 @@ test('unconfigured private workspace explains setup without exposing personal co
 test('mobile layout fits viewport and navigation works',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.goto((process.env.TEST_BASE_URL || 'http://127.0.0.1:3000'));
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();
- await page.getByRole('button',{name:'Toggle navigation'}).click();await page.getByRole('button',{name:'Research',exact:true}).click();await expect(page.getByRole('heading',{name:'Graph diagnostics'})).toBeVisible();
+ await page.getByRole('button',{name:'Toggle navigation'}).click();await page.getByRole('button',{name:'Research',exact:true}).click();await expect(page.getByRole('heading',{name:'Graph construction'})).toBeVisible();
 });

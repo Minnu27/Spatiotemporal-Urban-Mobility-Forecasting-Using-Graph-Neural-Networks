@@ -8,15 +8,15 @@
   },
   {
     "id": "validation",
-    "title": "Model comparison: best saved results and accuracy limitations",
-    "text": "Saved November\u2013December 2025 notebook results: spatial LightGBM MAE 3.528, 4.368, 4.716 at 1,3,6 hours. Correlation GCN-GRU MAE 4.086,4.730,5.031. No-graph GRU MAE 4.523,5.088,5.570. These are saved outputs, not independently reproduced. Full-year gap imputation used future statistics, so historical scores require a corrected rerun. Never claim that GNN beats LightGBM or that these scores measure current live accuracy.",
+    "title": "Current model comparison and archived accuracy status",
+    "text": "The current GitHub Colab notebook has all saved outputs cleared after preprocessing corrections. It defines a 12-hour input window, 1/3/6-hour evaluation, chronological training January–September 2025, validation October, and test November–December. It computes MAE, RMSE and WMAPE across all, active and event subsets, with model selection by mean validation MAE. There is no current measured winner or checked-in results CSV. The separate deployed Residual Graph ONNX export uses 168 input hours and five horizons 1/3/6/12/24; this notebook does not validate its accuracy. Only the explicitly archived pre-correction snapshot had spatial LightGBM MAE 3.528, 4.368 and 4.716 versus correlation GCN-GRU 4.086, 4.730 and 5.031 at 1/3/6 hours. Those saved scores are not independently reproduced and require a corrected rerun; never present them as current accuracy or evidence that GNN beats LightGBM.",
     "kind": "research",
     "url": "https://github.com/Minnu27/Spatiotemporal-Urban-Mobility-Forecasting-Using-Graph-Neural-Networks"
   },
   {
     "id": "graphs",
     "title": "Graph structure and weights",
-    "text": "Four graphs: buffered polygon contiguity with nearest-neighbor island bridges, 8-neighbor Gaussian distance, training-only origin-destination flow, and training-only residual correlation. Saved graph counts: contiguity 672 edges; distance 1254; OD 2308 with 2 isolated zones; correlation 2413 with 3 isolated zones. Graph edges do not necessarily represent drivable roads. Learned weights represent statistical dependence, not causation. The new artifact audit checks symmetry, diagonal, nonnegative finite weights, connected components and node ordering.",
+    "text": "Current notebook graph definitions: 50-foot buffered polygon contiguity with three-nearest-neighbor island bridges; eight-neighbor Gaussian distance; training-only origin-destination flow with ten strongest links; training-only residual correlation with ten strongest positive links after removing hour-of-week averages. Numeric graph diagnostics are absent because outputs were cleared. Historical counts 672/1254/2308/2413 belong only to the pre-correction archive, not the current notebook. Edges are modeled relationships, not necessarily drivable roads or causal effects.",
     "kind": "methodology",
     "url": "https://github.com/Minnu27/Spatiotemporal-Urban-Mobility-Forecasting-Using-Graph-Neural-Networks"
   },
@@ -44,7 +44,7 @@
   {
     "id": "fares",
     "title": "NYC yellow taxi prices",
-    "text": "TLC standard metered yellow taxi fare: $3 initial, $0.70 per fifth of a mile above 12 mph OR per 60 seconds slow/stopped, $0.50 state surcharge, $1 improvement surcharge, $1 overnight 8pm\u20136am, $2.50 weekday 4pm\u20138pm excluding holidays. Manhattan south of 96th: $2.50; applicable Congestion Relief Zone south of and including 60th: $0.75. Add tolls/tips. Trip costs supports the JFK\u2013Manhattan flat fare, JFK and LaGuardia pickup fees, the LaGuardia trip surcharge, and NYC pickups going to Newark Airport. It estimates congestion charges and detected bridge and tunnel tolls from the road route. Uber/Lyft/e-hail prices require provider quotes and cannot be inferred accurately from subway alerts. Trip costs retrieves weather at both zone centers for the selected departure hour and recalculates slow-time sensitivity, time-based charges and routed tolls. Missing weather leaves the traffic-only quote available without fabricated conditions. Forecast weather does not turn the demand GNN into a fare prediction model.",
+    "text": "TLC standard metered yellow taxi fare: $3 initial, $0.70 per fifth of a mile above 12 mph OR per 60 seconds slow/stopped, $0.50 state surcharge, $1 improvement surcharge, $1 overnight 8pm–6am, $2.50 weekday 4pm–8pm excluding holidays. Manhattan south of 96th: $2.50; applicable Congestion Relief Zone south of and including 60th: $0.75. Add tolls/tips. Trip costs supports the JFK–Manhattan flat fare, JFK and LaGuardia pickup fees, the LaGuardia trip surcharge, and NYC pickups going to Newark Airport. It estimates congestion charges and detected bridge and tunnel tolls from the road route. Uber/Lyft/e-hail prices require provider quotes and cannot be inferred accurately from subway alerts. Trip costs retrieves weather at both zone centers for the selected departure hour and recalculates slow-time sensitivity, time-based charges and routed tolls. Missing weather leaves the traffic-only quote available without fabricated conditions. Forecast weather does not turn the demand GNN into a fare prediction model.",
     "kind": "fare",
     "url": "https://www.nyc.gov/site/tlc/passengers/taxi-fare.page"
   },

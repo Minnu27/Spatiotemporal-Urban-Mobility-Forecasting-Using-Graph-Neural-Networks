@@ -2,7 +2,7 @@
 
 A Next.js dashboard for NYC taxi-demand research, official subway arrivals/service alerts, construction permits, transparent taxi-fare estimation, and a Qwen RAG assistant. Vercel hosts the web frontend and API routes; the bundled Colab model runs current-date demand estimates through ONNX Runtime using a historical reference profile and recent weather. No observed current pickups are connected. A separate trusted service can supply observed live forecasts.
 
-**Research status:** the original notebook has been corrected for future-data leakage and its outputs cleared. Archived scores in `data/research.json` are not independently reproduced. Spatial LightGBM outperformed the GNN in those scores. See [the audit](docs/AUDIT.md).
+**Research status:** the original notebook has been corrected for future-data leakage and its outputs cleared. Current notebook configuration is extracted into `data/research.json`; pre-correction scores are preserved in `data/research-archive.json` and are not independently reproduced. Spatial LightGBM outperformed the GNN in those scores. See [the audit](docs/AUDIT.md).
 
 ## Run the dashboard
 
@@ -26,6 +26,14 @@ npx playwright install chromium
 npm start
 # In another terminal:
 npx playwright test
+```
+
+## Research section
+
+The Research page follows the current GitHub notebook: 12-hour inputs, 1/3/6-hour evaluation, chronological Jan–Sep/Oct/Nov–Dec splits, 14 context features and four graph constructions. It distinguishes this configuration from the 168-hour, five-horizon ONNX export. With cleared notebook outputs, current scores and the model winner remain unavailable; previous scores live in a collapsed archive. See [docs/RESEARCH.md](docs/RESEARCH.md).
+
+```bash
+python scripts/sync-research.py --check
 ```
 
 ## Qwen RAG

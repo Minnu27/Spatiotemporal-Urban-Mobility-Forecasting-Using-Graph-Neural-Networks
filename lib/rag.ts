@@ -32,7 +32,7 @@ export function corpus(alerts: AlertResult): Document[] {
       recentSubwayReports:alerts.incidents.filter(i=>i.kind==='subway').slice(0,8).map(i=>({title:i.title,description:i.description.slice(0,450),routes:i.routes})),
       plannedRoadWorkPermits:alerts.incidents.filter(i=>i.kind==='road').length,qualification:'Counts cover returned feed records. Missing reports do not establish normal service. Work permits do not confirm a road closure.'}),
     url:'/api/alerts',kind:'alert'}]:[];
-  return [...knowledge,...liveSummary, {id:'research-status',title:'Research report status',text:JSON.stringify({status:research.status,limitations:research.limitations}),url:knowledge[0].url,kind:'research'},
+  return [...knowledge,...liveSummary, {id:'research-status',title:'Research report status',text:JSON.stringify({status:research.status,notebook:research.notebook,experiment:research.experiment,results:research.results,deployment:research.deployment,limitations:research.limitations}),url:knowledge[0].url,kind:'research'},
     ...alerts.feeds.map((f,i)=>({id:`feed-${i}`,title:`${f.source} feed status`,text:`${f.state}. ${f.detail} Last fetched ${f.fetchedAt}.`,kind:'status',url:f.source==='MTA'?'https://www.mta.info/alerts':'https://data.cityofnewyork.us/'})),
     ...alerts.incidents.map(i=>({id:i.id,title:i.title,text:`Source: ${i.source}. ${i.description} Routes: ${i.routes.join(', ')}. Borough: ${i.borough}. Starts: ${i.start ?? 'not specified'}. Ends: ${i.end ?? 'not specified'}. Fetched: ${i.fetchedAt}.`,url:i.url,kind:'alert'}))];
 }
