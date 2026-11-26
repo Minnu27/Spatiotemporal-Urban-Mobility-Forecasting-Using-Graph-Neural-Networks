@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { installStaticBuild } from './static-build';
 const baseUrl = process.env.TEST_BASE_URL || 'http://127.0.0.1:3000';
+test.beforeEach(async({page})=>{
+ if(process.env.TEST_STATIC_BUILD==='1')await installStaticBuild(page,new URL(baseUrl).origin);
+});
 test('departure choices appear in Trip costs and refresh the selected route, price and weather', async ({page}) => {
  await page.route('**/api/alerts',route=>route.fulfill({json:{incidents:[],feeds:[],fetchedAt:''}}));
  const requests:number[]=[];
@@ -36,7 +40,7 @@ test('departure choices appear in Trip costs and refresh the selected route, pri
 
 test('dashboard navigation, map selection, research, fares and source chat',async({page})=>{
  await page.route('**/api/chat',route=>route.fulfill({json:{mode:'sources',answer:'Archived model comparison [1].',citations:[{index:1,title:'Model comparison: best saved results',url:'https://github.com/Minnu27/Spatiotemporal-Urban-Mobility-Forecasting-Using-Graph-Neural-Networks'}]}}));
- await page.goto((process.env.TEST_BASE_URL || 'http://127.0.0.1:3000'));await expect(page.getByRole('heading',{name:'The city, connected.'})).toBeVisible();
+ await page.goto((process.env.TEST_BASE_URL || 'http://127.0.0.1:3000'));await expect(page.getByRole('heading',{name:'A smarter way to move through NYC.'})).toBeVisible();
  await page.getByLabel('Choose taxi zone').selectOption('132');await expect(page.getByText('Queens',{exact:true}).last()).toBeVisible();
  await page.getByRole('button',{name:'Research',exact:true}).click();await expect(page.getByRole('heading',{name:'Model comparison'})).toBeVisible();await expect(page.getByText('3.528',{exact:true})).not.toBeVisible();await page.getByText('Earlier results before preprocessing corrections',{exact:true}).click();await expect(page.getByText('3.528',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Trip costs',exact:true}).click();await page.getByLabel('Pickup location').selectOption('132');
@@ -94,4 +98,71 @@ test('Research filters actual five-horizon metrics and exposes event weaknesses'
  await expect(page.locator('.research-selection')).toContainText('Persistence (last hour)');
  await page.getByLabel('Error metric',{exact:true}).selectOption('wmape');
  await expect(page.locator('.research-selection')).toContainText('%');
+});
+
+test('opening planner carries the route into Trip costs, where departure controls update the request',async({page})=>{
+ await page.route('**/api/alerts',route=>route.fulfill({json:{incidents:[],feeds:[],fetchedAt:''}}));
+ await page.route('**/api/forecast',route=>route.fulfill({json:{mode:'unavailable',rows:[],message:'Unavailable in this test'}}));
+ const requests:{pickup:number;dropoff:number;horizon:number}[]=[];
+ await page.route('**/api/fare',route=>{requests.push(route.request().postDataJSON());return route.fulfill({status:503,json:{error:'Test routing service unavailable'}});});
+ await page.goto(baseUrl);
+ const world=page.locator('.city-world');
+ const original=await world.getAttribute('style');
+ await page.getByRole('button',{name:'Rotate city right',exact:true}).click();
+ await expect(world).not.toHaveAttribute('style',original!);
+ await page.getByRole('button',{name:'Reset city view',exact:true}).click();
+ await expect(world).toHaveAttribute('style',original!);
+ await page.getByRole('button',{name:'Pause city animation',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Play city animation',exact:true})).toBeVisible();
+ await page.getByLabel('Pickup zone',{exact:true}).selectOption('132');
+ await page.getByLabel('Drop-off zone',{exact:true}).selectOption('161');
+ await expect(page.getByRole('group',{name:'Departure time'})).toHaveCount(0);
+ expect(requests).toEqual([]);
+ await page.getByRole('button',{name:'See trip estimate',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Estimate your yellow taxi fare'})).toBeVisible();
+ await expect(page.getByLabel('Pickup location',{exact:true})).toHaveValue('132');
+ await expect(page.getByLabel('Drop-off location',{exact:true})).toHaveValue('161');
+ await expect.poll(()=>requests).toEqual([{pickup:132,dropoff:161,horizon:1}]);
+ await page.getByRole('button',{name:'24 hours ahead',exact:true}).click();
+ await expect(page.getByRole('button',{name:'24 hours ahead',exact:true})).toHaveAttribute('aria-pressed','true');
+ await expect.poll(()=>requests).toEqual([{pickup:132,dropoff:161,horizon:1},{pickup:132,dropoff:161,horizon:24}]);
+});
+
+test('search works with the keyboard, selects actual zones and filters source reports',async({page})=>{
+ await page.route('**/api/alerts',route=>route.fulfill({json:{incidents:[{id:'test-alert',source:'MTA',title:'Test service changes',description:'Test source report',kind:'subway',borough:'Network-wide',severity:'low',start:null,end:null,latitude:null,longitude:null,routes:['A'],url:'https://www.mta.info/alerts',fetchedAt:'2026-11-26T00:00:00Z'}],feeds:[],fetchedAt:'2026-11-26T00:00:00Z'}}));
+ await page.goto(baseUrl);
+ await page.getByRole('button',{name:'Search zones, reports, and pages'}).click();
+ const dialog=page.getByRole('dialog',{name:'Search UrbanFlow'});
+ const input=dialog.getByRole('textbox',{name:'Search UrbanFlow'});
+ await input.fill('JFK');await input.press('ArrowDown');await page.keyboard.press('Enter');
+ await expect(dialog).toHaveCount(0);
+ await expect(page.getByLabel('Choose taxi zone',{exact:true})).toHaveValue('132');
+ await expect(page.getByLabel('Pickup zone',{exact:true})).toHaveValue('132');
+ await page.keyboard.press('Control+k');
+ await dialog.getByRole('textbox',{name:'Search UrbanFlow'}).fill('service changes');
+ await dialog.getByRole('button',{name:'Test service changes MTA',exact:true}).click();
+ await expect(page.getByLabel('Search reports',{exact:true})).toHaveValue('Test service changes');
+ await expect(page.getByRole('heading',{name:'Test service changes',exact:true})).toBeVisible();
+ const trigger=page.getByRole('button',{name:'Search zones, reports, and pages'});
+ await trigger.click();await page.keyboard.press('Escape');await expect(trigger).toBeFocused();
+});
+
+test('quick planner prevents an identical route and keeps mobile controls within the viewport',async({page})=>{
+ await page.route('**/api/alerts',route=>route.fulfill({json:{incidents:[],feeds:[],fetchedAt:''}}));
+ await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto(baseUrl);
+ await page.getByLabel('Drop-off zone',{exact:true}).selectOption('161');
+ await expect(page.getByRole('button',{name:'See trip estimate',exact:true})).toBeDisabled();
+ await expect(page.getByRole('alert')).toContainText('Choose a different drop-off zone');
+ await page.getByLabel('Drop-off zone',{exact:true}).selectOption('132');
+ await page.getByRole('button',{name:'Swap pickup and drop-off',exact:true}).click();
+ await expect(page.getByLabel('Pickup zone',{exact:true})).toHaveValue('132');
+ await expect(page.getByLabel('Drop-off zone',{exact:true})).toHaveValue('161');
+ expect(await page.locator('.city-flow').evaluate(element=>getComputedStyle(element).animationName)).toBe('none');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();
+ await page.getByRole('button',{name:'Toggle navigation'}).click();
+ await expect(page.getByRole('button',{name:'Toggle navigation'})).toHaveAttribute('aria-expanded','true');
+ await page.getByRole('button',{name:'Research',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Graph diagnostics'})).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();
 });

@@ -2,38 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
-import zones from '@/data/zones.json';
 import { fareSource } from '@/lib/fares';
 import { tripHorizons } from '@/lib/horizons';
 import type { PlannedTrip } from '@/lib/trip-planning';
 import type { WeatherHour } from '@/lib/weather';
 import type { Forecast } from '@/lib/types';
+import TaxiZoneOptions, { type TripSelection } from './taxi-zone-options';
 
-const orderedZones = [...zones].sort((a, b) => a.name.localeCompare(b.name));
-const boroughs = [...new Set(orderedZones.map(zone => zone.borough))].sort();
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 const nyTime = new Intl.DateTimeFormat('en-US', {
   timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
 });
 
-function ZoneOptions({ allowNewark }: { allowNewark?: boolean }) {
-  return <>
-    <option value="">Choose a taxi zone</option>
-    {boroughs.filter(borough => allowNewark || borough !== 'EWR').map(borough => (
-      <optgroup key={borough} label={borough === 'EWR' ? 'New Jersey' : borough}>
-        {orderedZones.filter(zone => zone.borough === borough).map(zone => (
-          <option key={zone.id} value={zone.id}>{zone.name}</option>
-        ))}
-      </optgroup>
-    ))}
-  </>;
-}
-
-export default function FareEstimator() {
-  const [pickup, setPickup] = useState('');
-  const [dropoff, setDropoff] = useState('');
+export default function FareEstimator({ initialTrip }: { initialTrip?: TripSelection }) {
+  const [pickup, setPickup] = useState(initialTrip ? String(initialTrip.pickup) : '');
+  const [dropoff, setDropoff] = useState(initialTrip ? String(initialTrip.dropoff) : '');
   const [retry, setRetry] = useState(0);
-  const [horizon,setHorizon] = useState(1);
+  const [horizon,setHorizon] = useState(initialTrip?.horizon ?? 1);
   const [forecast,setForecast]=useState<Forecast|null>(null);
   const [quote, setQuote] = useState<{key: string; result?: PlannedTrip; error?: string} | null>(null);
   const key = pickup && dropoff ? `${pickup}:${dropoff}:${horizon}:${retry}` : '';
@@ -78,12 +63,12 @@ export default function FareEstimator() {
       <div className="trip-fields">
         <label>Pickup location
           <select aria-label="Pickup location" value={pickup} onChange={event => setPickup(event.target.value)}>
-            <ZoneOptions />
+            <TaxiZoneOptions />
           </select>
         </label>
         <label>Drop-off location
           <select aria-label="Drop-off location" value={dropoff} onChange={event => setDropoff(event.target.value)}>
-            <ZoneOptions allowNewark />
+            <TaxiZoneOptions allowNewark />
           </select>
         </label>
         <fieldset className="trip-departure">
