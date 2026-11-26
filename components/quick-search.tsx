@@ -16,9 +16,8 @@ export default function QuickSearch({ onClose, onNavigate, onZone, onReport, inc
   const input = useRef<HTMLInputElement>(null);
   useEffect(()=>{
     const previous = document.activeElement as HTMLElement | null;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden'; input.current?.focus();
-    return ()=>{document.body.style.overflow=overflow;previous?.focus();};
+    input.current?.focus();
+    return ()=>{previous?.focus();};
   },[]);
   const results = useMemo(()=>{
     const text=query.trim().toLowerCase();
