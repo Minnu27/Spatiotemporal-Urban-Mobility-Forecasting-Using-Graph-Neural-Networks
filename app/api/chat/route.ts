@@ -12,6 +12,7 @@ import { getForecast } from '@/lib/forecast';
 import zones from '@/data/zones.json';
 import type { Document } from '@/lib/types';
 export const dynamic='force-dynamic';
+export const maxDuration=180;
 const schema=z.object({question:z.string().trim().min(2).max(1200),scope:z.enum(['public','private']).default('public'),
   remember:z.boolean().default(false),conversationId:z.uuid().optional(),archive:z.boolean().default(false),
   demand:z.object({zoneId:z.number().int().min(1).max(263),horizon:z.literal([1,3,6,12,24])}).optional()});

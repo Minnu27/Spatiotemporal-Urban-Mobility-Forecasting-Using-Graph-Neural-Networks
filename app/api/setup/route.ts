@@ -3,7 +3,7 @@ import {requireMember,consumeLimit} from '@/lib/private/server';
 import {connectionChecks} from '@/lib/private/setup-checks';
 import {AppError,boundedText,errorResponse,privateJson,requireOrigin} from '@/lib/private/http';
 export const dynamic='force-dynamic';
-export const maxDuration=60;
+export const maxDuration=120;
 export async function POST(request:Request){try{
  requireOrigin(request);
  const {db}=await requireMember();

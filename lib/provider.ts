@@ -6,6 +6,7 @@ export class ProviderError extends Error {
 }
 export function providerFailure(error:unknown){
  if(error instanceof ProviderError)return {code:error.code,message:error.message};
+ if(error instanceof Error&&(error.name==='TimeoutError'||error.name==='AbortError'))return {code:'provider_timeout',message:'The AI provider took too long to answer. Please try again.'};
  if(error instanceof UpstreamError){
   if(error.status===401||error.status===403)return {code:'provider_access',message:'The AI provider rejected the key or its permissions. Check the token, account, region and model access in Vercel.'};
   if(error.status===429)return {code:'provider_quota',message:'The AI provider quota or rate limit was reached. Check its usage dashboard and retry after the limit resets.'};
@@ -23,15 +24,17 @@ export function chatSettings(){
 export function completionBody(messages:{role:string;content:string}[]){
  const settings=chatSettings();
  return {model:settings.model,temperature:0.1,messages,
-  // Cloudflare Qwen counts reasoning against its completion budget.
-  // The previous 900-token budget could finish before producing an answer.
-  ...(settings.reasoning?{max_completion_tokens:4096,reasoning_effort:'low'}:{max_tokens:900})};
+  // Evidence summarization does not need a separate reasoning pass. Qwen's
+  // default thinking mode regularly exhausted the old 30-second timeout.
+  ...(settings.cloudflare&&settings.model==='@cf/qwen/qwen3.8-27b'
+   ?{max_completion_tokens:1536,chat_template_kwargs:{enable_thinking:false}}
+   :settings.reasoning?{max_completion_tokens:4096,reasoning_effort:'low'}:{max_tokens:900})};
 }
 export async function generateCompletion(messages:{role:string;content:string}[]){
  if(!process.env.QWEN_API_KEY)throw new ProviderError('provider_key_missing','Add QWEN_API_KEY in the deployment environment.');
  const {base}=chatSettings();
  const raw=await fetchJson(base+'/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${process.env.QWEN_API_KEY}`,'Content-Type':'application/json'},
-  body:JSON.stringify(completionBody(messages))},150_000,30_000);
+  body:JSON.stringify(completionBody(messages))},150_000,60_000);
  const parsed=z.object({choices:z.array(z.object({message:z.object({content:z.string().nullable()}),finish_reason:z.string().nullable().optional()})).min(1)}).parse(raw);
  const first=parsed.choices[0],answer=first.message.content?.trim();
  if(!answer)throw new ProviderError('provider_empty_answer','The model returned no answer. Its reasoning may have exhausted the completion budget.');

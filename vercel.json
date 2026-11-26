@@ -2,7 +2,7 @@
   "framework": "nextjs",
   "functions": {
     "app/api/chat/route.ts": {
-      "maxDuration": 60
+      "maxDuration": 180
     },
     "app/api/alerts/route.ts": {
       "maxDuration": 30

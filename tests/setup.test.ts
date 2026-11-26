@@ -5,6 +5,7 @@ import {databaseIssue} from '../lib/private/setup-errors';
 import {completionBody,generateCompletion,providerFailure,ProviderError} from '../lib/provider';
 import {connectionChecks} from '../lib/private/setup-checks';
 import {POST as setup} from '../app/api/setup/route';
+import {answerFromEvidence} from '../lib/answer';
 const env={NEXT_PUBLIC_SUPABASE_URL:'https://project.supabase.co',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_public-test-value',
  SUPABASE_SERVICE_ROLE_KEY:'sb_secret_private-test-value',MAINTENANCE_TOKEN:'m'.repeat(64),RATE_LIMIT_SALT:'s'.repeat(64),
  QWEN_API_KEY:'private-provider-test-token',QWEN_BASE_URL:'https://api.cloudflare.com/client/v4/accounts/'+'a'.repeat(32)+'/ai/v1',
@@ -32,11 +33,29 @@ test('database diagnosis maps only safe constant messages',()=>{
  }
  assert.equal(databaseIssue({message:'Invalid API key '+secret},401).code,'database_credentials');
 });
-test('Cloudflare Qwen gets a reasoning budget while other compatible providers keep their contract',()=>{
+test('Cloudflare Qwen 3.8 summarizes evidence without a separate thinking pass',()=>{
  const restore=installEnv();try{
-  const body=completionBody([{role:'user',content:'OK'}]);assert.ok('max_completion_tokens'in body);assert.equal(body.max_completion_tokens,4096);assert.equal(body.reasoning_effort,'low');assert.ok(!('max_tokens'in body));
+  const body=completionBody([{role:'user',content:'OK'}]);assert.ok('max_completion_tokens'in body);assert.equal(body.max_completion_tokens,1536);
+  assert.ok('chat_template_kwargs'in body);assert.equal(body.chat_template_kwargs?.enable_thinking,false);assert.ok(!('max_tokens'in body));
+  process.env.QWEN_MODEL='@cf/qwen/another-reasoning-model';
+  const reasoning=completionBody([{role:'user',content:'OK'}]);assert.ok('max_completion_tokens'in reasoning);assert.ok('reasoning_effort'in reasoning);assert.equal(reasoning.max_completion_tokens,4096);assert.equal(reasoning.reasoning_effort,'low');
   process.env.QWEN_BASE_URL='https://dashscope-intl.aliyuncs.com/compatible-mode/v1';process.env.QWEN_MODEL='qwen-plus';
   const other=completionBody([{role:'user',content:'OK'}]);assert.ok('max_tokens'in other);assert.equal(other.max_tokens,900);
+ }finally{restore();}
+});
+test('chat distinguishes slow generation from unverified citations without exposing upstream errors',async context=>{
+ const restore=installEnv();let outcome='timeout';
+ const docs=[{id:'test',title:'Test evidence',text:'Verified source.',url:'https://example.com',kind:'research'}];
+ context.mock.method(globalThis,'fetch',async()=>{
+  if(outcome==='timeout')throw new DOMException('PRIVATE-UPSTREAM-DETAIL','TimeoutError');
+  return Response.json({choices:[{message:{content:outcome==='uncited'?'Uncited answer.':'Verified source [1].'},finish_reason:'stop'}]});
+ });
+ try{
+  const timedOut=await answerFromEvidence('Question?',docs);
+  assert.equal(timedOut.mode,'sources');assert.equal(timedOut.generationError,'provider_timeout');assert.match(timedOut.notice!,/took too long/);
+  assert.ok(!JSON.stringify(timedOut).includes('PRIVATE-UPSTREAM-DETAIL'));
+  outcome='uncited';const uncited=await answerFromEvidence('Question?',docs);assert.equal(uncited.mode,'sources');assert.equal(uncited.generationError,'provider_citations');
+  outcome='valid';const valid=await answerFromEvidence('Question?',docs);assert.equal(valid.mode,'qwen');assert.equal(valid.answer,'Verified source [1].');
  }finally{restore();}
 });
 test('generation rejects empty reasoning-only answers and truncated responses',async context=>{
