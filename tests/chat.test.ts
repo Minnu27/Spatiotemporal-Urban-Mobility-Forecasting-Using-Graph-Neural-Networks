@@ -45,11 +45,13 @@ test('source answers use current horizon evidence and are never cached', async c
   }
 });
 
-test('updated forecast evidence preserves the scope of archived accuracy scores', () => {
+test('five-horizon benchmark evidence does not establish deployed current-demand accuracy', () => {
   const docs = corpus({ incidents: [], feeds: [], fetchedAt: '' });
   const evidence = retrieve('12 24 hour forecast', docs).find(doc => doc.id === 'project');
   assert.ok(evidence);
-  assert.match(evidence.text, /does not validate accuracy/);
+  assert.match(evidence.text, /not current-demand accuracy/);
+  assert.match(evidence.text, /not cryptographically linked/);
+  assert.match(evidence.text, /earlier pre-correction archive covers only 1\/3\/6 hours/i);
 });
 test('chat retrieves an exact zone and horizon through the structured forecast API',async context=>{
  const names=['QWEN_API_KEY','UPSTASH_REDIS_REST_URL','UPSTASH_REDIS_REST_TOKEN','MODEL_SERVICE_URL','MODEL_SERVICE_TOKEN'];

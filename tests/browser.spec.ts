@@ -38,7 +38,7 @@ test('dashboard navigation, map selection, research, fares and source chat',asyn
  await page.route('**/api/chat',route=>route.fulfill({json:{mode:'sources',answer:'Archived model comparison [1].',citations:[{index:1,title:'Model comparison: best saved results',url:'https://github.com/Minnu27/Spatiotemporal-Urban-Mobility-Forecasting-Using-Graph-Neural-Networks'}]}}));
  await page.goto((process.env.TEST_BASE_URL || 'http://127.0.0.1:3000'));await expect(page.getByRole('heading',{name:'The city, connected.'})).toBeVisible();
  await page.getByLabel('Choose taxi zone').selectOption('132');await expect(page.getByText('Queens',{exact:true}).last()).toBeVisible();
- await page.getByRole('button',{name:'Research',exact:true}).click();await expect(page.getByRole('heading',{name:'Model comparison'})).toBeVisible();await expect(page.getByText('3.528',{exact:true})).not.toBeVisible();await page.getByText('Archived results before preprocessing corrections',{exact:true}).click();await expect(page.getByText('3.528',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Research',exact:true}).click();await expect(page.getByRole('heading',{name:'Model comparison'})).toBeVisible();await expect(page.getByText('3.528',{exact:true})).not.toBeVisible();await page.getByText('Earlier results before preprocessing corrections',{exact:true}).click();await expect(page.getByText('3.528',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Trip costs',exact:true}).click();await page.getByLabel('Pickup location').selectOption('132');
  await page.getByLabel('Drop-off location').selectOption('161');
  await expect(page.getByRole('combobox')).toHaveCount(2);
@@ -78,5 +78,20 @@ test('unconfigured private workspace explains setup without exposing personal co
 test('mobile layout fits viewport and navigation works',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.goto((process.env.TEST_BASE_URL || 'http://127.0.0.1:3000'));
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();
- await page.getByRole('button',{name:'Toggle navigation'}).click();await page.getByRole('button',{name:'Research',exact:true}).click();await expect(page.getByRole('heading',{name:'Graph construction'})).toBeVisible();
+ await page.getByRole('button',{name:'Toggle navigation'}).click();await page.getByRole('button',{name:'Research',exact:true}).click();await expect(page.getByRole('heading',{name:'Graph diagnostics'})).toBeVisible();
+});
+
+test('Research filters actual five-horizon metrics and exposes event weaknesses',async({page})=>{
+ await page.route('**/api/alerts',route=>route.fulfill({json:{incidents:[],feeds:[],fetchedAt:''}}));
+ await page.goto(baseUrl);await page.getByRole('button',{name:'Research',exact:true}).click();
+ await expect(page.getByText('Saved notebook benchmark · February and September 2025 test months',{exact:true})).toBeVisible();
+ await page.getByRole('group',{name:'Research evaluation horizon'}).getByRole('button',{name:'+24h',exact:true}).click();
+ await expect(page.locator('.research-selection')).toContainText('3.590');
+ await expect(page.locator('.research-selection')).toContainText('Residual Graph (distance + OD)');
+ await page.getByRole('group',{name:'Research evaluation horizon'}).getByRole('button',{name:'+1h',exact:true}).click();
+ await page.getByLabel('Evaluation subset',{exact:true}).selectOption('events');
+ await expect(page.locator('.research-selection')).toContainText('73.563');
+ await expect(page.locator('.research-selection')).toContainText('Persistence (last hour)');
+ await page.getByLabel('Error metric',{exact:true}).selectOption('wmape');
+ await expect(page.locator('.research-selection')).toContainText('%');
 });

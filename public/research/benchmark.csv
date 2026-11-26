@@ -1,0 +1,271 @@
+model,split,subset,horizon,mae,rmse,wmape,cellIndex,outputIndex
+Residual Graph (OD + correlation),test,all,1,3.301,9.824,0.153,44,23
+Residual Graph (OD + correlation),test,all,3,3.466,10.409,0.161,44,23
+Residual Graph (OD + correlation),test,all,6,3.518,10.687,0.164,44,23
+Residual Graph (OD + correlation),test,all,12,3.593,11.089,0.167,44,23
+Residual Graph (OD + correlation),test,all,24,3.59,11.185,0.166,44,23
+Residual Graph (distance + OD),test,all,1,3.353,10.097,0.156,44,23
+Residual Graph (distance + OD),test,all,3,3.505,10.723,0.163,44,23
+Residual Graph (distance + OD),test,all,6,3.549,10.763,0.165,44,23
+Residual Graph (distance + OD),test,all,12,3.554,10.889,0.165,44,23
+Residual Graph (distance + OD),test,all,24,3.576,11.064,0.165,44,23
+Seasonal residual (no graph),test,all,1,3.4,10.182,0.158,44,23
+Seasonal residual (no graph),test,all,3,3.515,10.633,0.164,44,23
+Seasonal residual (no graph),test,all,6,3.584,10.862,0.167,44,23
+Seasonal residual (no graph),test,all,12,3.658,11.278,0.17,44,23
+Seasonal residual (no graph),test,all,24,3.612,11.08,0.167,44,23
+LightGBM + spatial lags,test,all,1,3.412,9.976,0.158,44,23
+LightGBM + spatial lags,test,all,3,3.877,11.875,0.18,44,23
+LightGBM + spatial lags,test,all,6,3.986,12.259,0.186,44,23
+LightGBM + spatial lags,test,all,12,4.036,12.363,0.187,44,23
+LightGBM + spatial lags,test,all,24,4.03,12.392,0.186,44,23
+LightGBM (no spatial features),test,all,1,3.492,10.33,0.162,44,23
+LightGBM (no spatial features),test,all,3,3.851,11.644,0.179,44,23
+LightGBM (no spatial features),test,all,6,3.992,12.329,0.186,44,23
+LightGBM (no spatial features),test,all,12,4.029,12.322,0.187,44,23
+LightGBM (no spatial features),test,all,24,4.038,12.414,0.186,44,23
+Graph WaveNet (adaptive only),test,all,1,3.806,11.688,0.177,44,23
+Graph WaveNet (adaptive only),test,all,3,4.098,12.771,0.191,44,23
+Graph WaveNet (adaptive only),test,all,6,4.196,13.136,0.195,44,23
+Graph WaveNet (adaptive only),test,all,12,4.264,13.577,0.198,44,23
+Graph WaveNet (adaptive only),test,all,24,4.146,13.459,0.191,44,23
+Graph WaveNet (distance + adaptive),test,all,1,3.84,11.956,0.178,44,23
+Graph WaveNet (distance + adaptive),test,all,3,4.054,12.824,0.189,44,23
+Graph WaveNet (distance + adaptive),test,all,6,4.207,13.297,0.196,44,23
+Graph WaveNet (distance + adaptive),test,all,12,4.255,13.561,0.197,44,23
+Graph WaveNet (distance + adaptive),test,all,24,4.191,13.669,0.194,44,23
+GCN-GRU (random (control) graph),test,all,1,4.115,12.89,0.191,44,23
+GCN-GRU (random (control) graph),test,all,3,4.342,13.622,0.202,44,23
+GCN-GRU (random (control) graph),test,all,6,4.354,13.569,0.203,44,23
+GCN-GRU (random (control) graph),test,all,12,4.368,13.944,0.203,44,23
+GCN-GRU (random (control) graph),test,all,24,4.394,14.278,0.203,44,23
+GCN-GRU (distance graph),test,all,1,4.125,13.316,0.191,44,23
+GCN-GRU (distance graph),test,all,3,4.276,13.764,0.199,44,23
+GCN-GRU (distance graph),test,all,6,4.353,13.925,0.203,44,23
+GCN-GRU (distance graph),test,all,12,4.333,13.797,0.201,44,23
+GCN-GRU (distance graph),test,all,24,4.443,14.707,0.205,44,23
+GCN-GRU (contiguity graph),test,all,1,4.161,13.165,0.193,44,23
+GCN-GRU (contiguity graph),test,all,3,4.279,13.59,0.199,44,23
+GCN-GRU (contiguity graph),test,all,6,4.375,13.994,0.204,44,23
+GCN-GRU (contiguity graph),test,all,12,4.433,14.38,0.206,44,23
+GCN-GRU (contiguity graph),test,all,24,4.391,14.471,0.203,44,23
+GCN-GRU (correlation graph),test,all,1,4.24,13.595,0.197,44,23
+GCN-GRU (correlation graph),test,all,3,4.412,14.093,0.205,44,23
+GCN-GRU (correlation graph),test,all,6,4.461,14.174,0.208,44,23
+GCN-GRU (correlation graph),test,all,12,4.501,14.657,0.209,44,23
+GCN-GRU (correlation graph),test,all,24,4.562,15.089,0.211,44,23
+GCN-GRU (OD flow graph),test,all,1,4.286,13.94,0.199,44,23
+GCN-GRU (OD flow graph),test,all,3,4.428,14.172,0.206,44,23
+GCN-GRU (OD flow graph),test,all,6,4.528,14.435,0.211,44,23
+GCN-GRU (OD flow graph),test,all,12,4.487,14.441,0.208,44,23
+GCN-GRU (OD flow graph),test,all,24,4.508,14.9,0.208,44,23
+Historical average (hour-of-week),test,all,1,4.287,13.173,0.199,44,23
+Historical average (hour-of-week),test,all,3,4.271,13.115,0.199,44,23
+Historical average (hour-of-week),test,all,6,4.264,13.096,0.199,44,23
+Historical average (hour-of-week),test,all,12,4.266,13.102,0.198,44,23
+Historical average (hour-of-week),test,all,24,4.27,13.095,0.197,44,23
+GRU (no graph),test,all,1,4.287,13.803,0.199,44,23
+GRU (no graph),test,all,3,4.432,14.129,0.206,44,23
+GRU (no graph),test,all,6,4.549,14.614,0.212,44,23
+GRU (no graph),test,all,12,4.581,15.08,0.213,44,23
+GRU (no graph),test,all,24,4.529,14.912,0.209,44,23
+Weekly moving average (up to 4 same-month weeks),test,all,1,4.625,14.697,0.215,44,23
+Weekly moving average (up to 4 same-month weeks),test,all,3,4.604,14.658,0.214,44,23
+Weekly moving average (up to 4 same-month weeks),test,all,6,4.591,14.641,0.214,44,23
+Weekly moving average (up to 4 same-month weeks),test,all,12,4.555,14.471,0.211,44,23
+Weekly moving average (up to 4 same-month weeks),test,all,24,4.462,13.966,0.206,44,23
+Seasonal naive (same hour last week),test,all,1,4.99,15.715,0.231,44,23
+Seasonal naive (same hour last week),test,all,3,4.97,15.678,0.231,44,23
+Seasonal naive (same hour last week),test,all,6,4.958,15.662,0.231,44,23
+Seasonal naive (same hour last week),test,all,12,4.941,15.544,0.229,44,23
+Seasonal naive (same hour last week),test,all,24,4.907,15.444,0.227,44,23
+Persistence (last hour),test,all,1,5.903,17.709,0.274,44,23
+Persistence (last hour),test,all,3,11.682,36.71,0.543,44,23
+Persistence (last hour),test,all,6,18.432,55.267,0.858,44,23
+Persistence (last hour),test,all,12,23.425,67.311,1.087,44,23
+Persistence (last hour),test,all,24,6.822,24.238,0.315,44,23
+Seasonal naive (same hour yesterday),test,all,1,7.023,25.148,0.326,44,23
+Seasonal naive (same hour yesterday),test,all,3,6.94,24.671,0.323,44,23
+Seasonal naive (same hour yesterday),test,all,6,6.887,24.442,0.321,44,23
+Seasonal naive (same hour yesterday),test,all,12,6.857,24.367,0.318,44,23
+Seasonal naive (same hour yesterday),test,all,24,6.822,24.238,0.315,44,23
+Residual Graph (OD + correlation),test,active,1,5.324,12.741,0.148,44,25
+Residual Graph (OD + correlation),test,active,3,5.601,13.5,0.156,44,25
+Residual Graph (OD + correlation),test,active,6,5.689,13.861,0.158,44,25
+Residual Graph (OD + correlation),test,active,12,5.813,14.384,0.161,44,25
+Residual Graph (OD + correlation),test,active,24,5.809,14.508,0.16,44,25
+Residual Graph (distance + OD),test,active,1,5.409,13.095,0.15,44,25
+Residual Graph (distance + OD),test,active,3,5.665,13.909,0.157,44,25
+Residual Graph (distance + OD),test,active,6,5.738,13.961,0.16,44,25
+Residual Graph (distance + OD),test,active,12,5.747,14.124,0.159,44,25
+Residual Graph (distance + OD),test,active,24,5.782,14.352,0.16,44,25
+LightGBM + spatial lags,test,active,1,5.477,12.94,0.152,44,25
+LightGBM + spatial lags,test,active,3,6.259,15.407,0.174,44,25
+LightGBM + spatial lags,test,active,6,6.44,15.906,0.179,44,25
+LightGBM + spatial lags,test,active,12,6.524,16.041,0.181,44,25
+LightGBM + spatial lags,test,active,24,6.513,16.079,0.18,44,25
+Seasonal residual (no graph),test,active,1,5.486,13.205,0.152,44,25
+Seasonal residual (no graph),test,active,3,5.68,13.792,0.158,44,25
+Seasonal residual (no graph),test,active,6,5.795,14.089,0.161,44,25
+Seasonal residual (no graph),test,active,12,5.92,14.63,0.164,44,25
+Seasonal residual (no graph),test,active,24,5.841,14.373,0.161,44,25
+LightGBM (no spatial features),test,active,1,5.611,13.401,0.156,44,25
+LightGBM (no spatial features),test,active,3,6.213,15.106,0.173,44,25
+LightGBM (no spatial features),test,active,6,6.451,15.997,0.179,44,25
+LightGBM (no spatial features),test,active,12,6.511,15.988,0.18,44,25
+LightGBM (no spatial features),test,active,24,6.525,16.107,0.18,44,25
+Graph WaveNet (adaptive only),test,active,1,6.178,15.161,0.171,44,25
+Graph WaveNet (adaptive only),test,active,3,6.671,16.568,0.185,44,25
+Graph WaveNet (adaptive only),test,active,6,6.835,17.043,0.19,44,25
+Graph WaveNet (adaptive only),test,active,12,6.948,17.616,0.193,44,25
+Graph WaveNet (adaptive only),test,active,24,6.749,17.462,0.186,44,25
+Graph WaveNet (distance + adaptive),test,active,1,6.238,15.51,0.173,44,25
+Graph WaveNet (distance + adaptive),test,active,3,6.599,16.638,0.183,44,25
+Graph WaveNet (distance + adaptive),test,active,6,6.856,17.252,0.191,44,25
+Graph WaveNet (distance + adaptive),test,active,12,6.935,17.595,0.192,44,25
+Graph WaveNet (distance + adaptive),test,active,24,6.825,17.736,0.188,44,25
+GCN-GRU (random (control) graph),test,active,1,6.696,16.723,0.186,44,25
+GCN-GRU (random (control) graph),test,active,3,7.08,17.675,0.197,44,25
+GCN-GRU (random (control) graph),test,active,6,7.1,17.605,0.198,44,25
+GCN-GRU (random (control) graph),test,active,12,7.123,18.092,0.197,44,25
+GCN-GRU (random (control) graph),test,active,24,7.165,18.526,0.198,44,25
+GCN-GRU (distance graph),test,active,1,6.716,17.276,0.186,44,25
+GCN-GRU (distance graph),test,active,3,6.971,17.859,0.194,44,25
+GCN-GRU (distance graph),test,active,6,7.1,18.068,0.198,44,25
+GCN-GRU (distance graph),test,active,12,7.064,17.901,0.196,44,25
+GCN-GRU (distance graph),test,active,24,7.248,19.084,0.2,44,25
+GCN-GRU (contiguity graph),test,active,1,6.777,17.081,0.188,44,25
+GCN-GRU (contiguity graph),test,active,3,6.975,17.632,0.194,44,25
+GCN-GRU (contiguity graph),test,active,6,7.136,18.157,0.199,44,25
+GCN-GRU (contiguity graph),test,active,12,7.234,18.66,0.201,44,25
+GCN-GRU (contiguity graph),test,active,24,7.162,18.777,0.198,44,25
+GCN-GRU (correlation graph),test,active,1,6.909,17.639,0.191,44,25
+GCN-GRU (correlation graph),test,active,3,7.199,18.287,0.2,44,25
+GCN-GRU (correlation graph),test,active,6,7.28,18.392,0.203,44,25
+GCN-GRU (correlation graph),test,active,12,7.346,19.02,0.204,44,25
+GCN-GRU (correlation graph),test,active,24,7.449,19.581,0.206,44,25
+Historical average (hour-of-week),test,active,1,6.943,17.093,0.192,44,25
+Historical average (hour-of-week),test,active,3,6.917,17.017,0.192,44,25
+Historical average (hour-of-week),test,active,6,6.905,16.994,0.192,44,25
+Historical average (hour-of-week),test,active,12,6.908,17.0,0.191,44,25
+Historical average (hour-of-week),test,active,24,6.915,16.991,0.191,44,25
+GRU (no graph),test,active,1,6.985,17.91,0.194,44,25
+GRU (no graph),test,active,3,7.23,18.332,0.201,44,25
+GRU (no graph),test,active,6,7.427,18.963,0.207,44,25
+GRU (no graph),test,active,12,7.48,19.568,0.207,44,25
+GRU (no graph),test,active,24,7.391,19.351,0.204,44,25
+GCN-GRU (OD flow graph),test,active,1,6.986,18.088,0.194,44,25
+GCN-GRU (OD flow graph),test,active,3,7.225,18.389,0.201,44,25
+GCN-GRU (OD flow graph),test,active,6,7.394,18.731,0.206,44,25
+GCN-GRU (OD flow graph),test,active,12,7.323,18.739,0.203,44,25
+GCN-GRU (OD flow graph),test,active,24,7.357,19.335,0.203,44,25
+Weekly moving average (up to 4 same-month weeks),test,active,1,7.499,19.069,0.208,44,25
+Weekly moving average (up to 4 same-month weeks),test,active,3,7.465,19.018,0.207,44,25
+Weekly moving average (up to 4 same-month weeks),test,active,6,7.443,18.995,0.207,44,25
+Weekly moving average (up to 4 same-month weeks),test,active,12,7.382,18.775,0.205,44,25
+Weekly moving average (up to 4 same-month weeks),test,active,24,7.226,18.118,0.199,44,25
+Seasonal naive (same hour last week),test,active,1,8.095,20.387,0.224,44,25
+Seasonal naive (same hour last week),test,active,3,8.063,20.34,0.224,44,25
+Seasonal naive (same hour last week),test,active,6,8.042,20.319,0.224,44,25
+Seasonal naive (same hour last week),test,active,12,8.012,20.165,0.222,44,25
+Seasonal naive (same hour last week),test,active,24,7.954,20.035,0.219,44,25
+Persistence (last hour),test,active,1,9.631,22.98,0.267,44,25
+Persistence (last hour),test,active,3,19.342,47.658,0.538,44,25
+Persistence (last hour),test,active,6,30.704,71.756,0.854,44,25
+Persistence (last hour),test,active,12,39.105,87.396,1.084,44,25
+Persistence (last hour),test,active,24,11.174,31.46,0.308,44,25
+Seasonal naive (same hour yesterday),test,active,1,11.513,32.642,0.319,44,25
+Seasonal naive (same hour yesterday),test,active,3,11.373,32.022,0.316,44,25
+Seasonal naive (same hour yesterday),test,active,6,11.284,31.725,0.314,44,25
+Seasonal naive (same hour yesterday),test,active,12,11.233,31.629,0.311,44,25
+Seasonal naive (same hour yesterday),test,active,24,11.174,31.46,0.308,44,25
+Persistence (last hour),test,events,1,33.676,47.128,0.593,44,27
+Persistence (last hour),test,events,3,45.595,69.336,0.803,44,27
+Persistence (last hour),test,events,6,37.405,48.677,0.659,44,27
+Persistence (last hour),test,events,12,51.162,65.027,0.901,44,27
+Persistence (last hour),test,events,24,55.667,97.213,0.964,44,27
+LightGBM + spatial lags,test,events,1,41.979,63.327,0.74,44,27
+LightGBM + spatial lags,test,events,3,68.551,108.164,1.208,44,27
+LightGBM + spatial lags,test,events,6,78.365,126.778,1.381,44,27
+LightGBM + spatial lags,test,events,12,83.114,139.508,1.464,44,27
+LightGBM + spatial lags,test,events,24,84.51,142.519,1.464,44,27
+LightGBM (no spatial features),test,events,1,42.114,64.496,0.742,44,27
+LightGBM (no spatial features),test,events,3,73.238,119.021,1.29,44,27
+LightGBM (no spatial features),test,events,6,78.007,125.802,1.374,44,27
+LightGBM (no spatial features),test,events,12,79.399,129.607,1.399,44,27
+LightGBM (no spatial features),test,events,24,83.108,141.199,1.44,44,27
+Seasonal naive (same hour yesterday),test,events,1,57.865,98.5,1.02,44,27
+Seasonal naive (same hour yesterday),test,events,3,57.865,98.5,1.02,44,27
+Seasonal naive (same hour yesterday),test,events,6,57.865,98.5,1.02,44,27
+Seasonal naive (same hour yesterday),test,events,12,57.865,98.5,1.02,44,27
+Seasonal naive (same hour yesterday),test,events,24,55.667,97.213,0.964,44,27
+GRU (no graph),test,events,1,58.325,79.739,1.028,44,27
+GRU (no graph),test,events,3,64.771,88.76,1.141,44,27
+GRU (no graph),test,events,6,78.799,117.322,1.388,44,27
+GRU (no graph),test,events,12,89.718,155.255,1.581,44,27
+GRU (no graph),test,events,24,84.592,138.196,1.465,44,27
+Graph WaveNet (adaptive only),test,events,1,58.784,84.782,1.036,44,27
+Graph WaveNet (adaptive only),test,events,3,72.872,110.128,1.284,44,27
+Graph WaveNet (adaptive only),test,events,6,83.737,130.194,1.475,44,27
+Graph WaveNet (adaptive only),test,events,12,96.264,168.167,1.696,44,27
+Graph WaveNet (adaptive only),test,events,24,86.52,144.826,1.499,44,27
+GCN-GRU (random (control) graph),test,events,1,63.011,87.234,1.11,44,27
+GCN-GRU (random (control) graph),test,events,3,79.315,118.706,1.397,44,27
+GCN-GRU (random (control) graph),test,events,6,85.152,131.791,1.5,44,27
+GCN-GRU (random (control) graph),test,events,12,99.92,172.407,1.76,44,27
+GCN-GRU (random (control) graph),test,events,24,94.079,163.49,1.63,44,27
+Graph WaveNet (distance + adaptive),test,events,1,63.194,89.896,1.113,44,27
+Graph WaveNet (distance + adaptive),test,events,3,76.477,114.76,1.347,44,27
+Graph WaveNet (distance + adaptive),test,events,6,84.294,131.927,1.485,44,27
+Graph WaveNet (distance + adaptive),test,events,12,102.129,184.227,1.799,44,27
+Graph WaveNet (distance + adaptive),test,events,24,88.215,151.905,1.528,44,27
+GCN-GRU (distance graph),test,events,1,65.907,94.18,1.161,44,27
+GCN-GRU (distance graph),test,events,3,82.549,129.574,1.454,44,27
+GCN-GRU (distance graph),test,events,6,85.5,136.886,1.506,44,27
+GCN-GRU (distance graph),test,events,12,99.277,170.937,1.749,44,27
+GCN-GRU (distance graph),test,events,24,94.599,166.359,1.639,44,27
+GCN-GRU (OD flow graph),test,events,1,68.722,97.663,1.211,44,27
+GCN-GRU (OD flow graph),test,events,3,80.602,120.888,1.42,44,27
+GCN-GRU (OD flow graph),test,events,6,86.131,131.693,1.518,44,27
+GCN-GRU (OD flow graph),test,events,12,100.554,169.906,1.772,44,27
+GCN-GRU (OD flow graph),test,events,24,90.542,153.099,1.569,44,27
+GCN-GRU (correlation graph),test,events,1,68.768,97.297,1.212,44,27
+GCN-GRU (correlation graph),test,events,3,82.583,127.239,1.455,44,27
+GCN-GRU (correlation graph),test,events,6,86.514,135.497,1.524,44,27
+GCN-GRU (correlation graph),test,events,12,104.7,181.934,1.845,44,27
+GCN-GRU (correlation graph),test,events,24,91.544,157.292,1.586,44,27
+GCN-GRU (contiguity graph),test,events,1,69.615,102.139,1.227,44,27
+GCN-GRU (contiguity graph),test,events,3,81.607,125.999,1.438,44,27
+GCN-GRU (contiguity graph),test,events,6,87.383,137.629,1.54,44,27
+GCN-GRU (contiguity graph),test,events,12,101.997,178.628,1.797,44,27
+GCN-GRU (contiguity graph),test,events,24,91.892,158.54,1.592,44,27
+Seasonal residual (no graph),test,events,1,71.739,111.792,1.264,44,27
+Seasonal residual (no graph),test,events,3,78.205,122.626,1.378,44,27
+Seasonal residual (no graph),test,events,6,78.79,124.425,1.388,44,27
+Seasonal residual (no graph),test,events,12,88.648,151.187,1.562,44,27
+Seasonal residual (no graph),test,events,24,85.46,139.712,1.481,44,27
+Residual Graph (OD + correlation),test,events,1,73.563,113.398,1.296,44,27
+Residual Graph (OD + correlation),test,events,3,77.429,123.078,1.364,44,27
+Residual Graph (OD + correlation),test,events,6,77.911,124.075,1.373,44,27
+Residual Graph (OD + correlation),test,events,12,91.684,159.387,1.615,44,27
+Residual Graph (OD + correlation),test,events,24,89.36,153.586,1.548,44,27
+Residual Graph (distance + OD),test,events,1,73.685,113.622,1.298,44,27
+Residual Graph (distance + OD),test,events,3,75.467,117.772,1.33,44,27
+Residual Graph (distance + OD),test,events,6,78.458,123.255,1.382,44,27
+Residual Graph (distance + OD),test,events,12,91.595,157.262,1.614,44,27
+Residual Graph (distance + OD),test,events,24,85.76,144.163,1.486,44,27
+Historical average (hour-of-week),test,events,1,101.785,171.474,1.793,44,27
+Historical average (hour-of-week),test,events,3,101.785,171.474,1.793,44,27
+Historical average (hour-of-week),test,events,6,101.785,171.474,1.793,44,27
+Historical average (hour-of-week),test,events,12,101.785,171.474,1.793,44,27
+Historical average (hour-of-week),test,events,24,102.08,173.174,1.768,44,27
+Weekly moving average (up to 4 same-month weeks),test,events,1,105.878,182.025,1.865,44,27
+Weekly moving average (up to 4 same-month weeks),test,events,3,105.878,182.025,1.865,44,27
+Weekly moving average (up to 4 same-month weeks),test,events,6,105.878,182.025,1.865,44,27
+Weekly moving average (up to 4 same-month weeks),test,events,12,105.878,182.025,1.865,44,27
+Weekly moving average (up to 4 same-month weeks),test,events,24,107.042,184.227,1.854,44,27
+Seasonal naive (same hour last week),test,events,1,108.081,190.498,1.904,44,27
+Seasonal naive (same hour last week),test,events,3,108.081,190.498,1.904,44,27
+Seasonal naive (same hour last week),test,events,6,108.081,190.498,1.904,44,27
+Seasonal naive (same hour last week),test,events,12,108.081,190.498,1.904,44,27
+Seasonal naive (same hour last week),test,events,24,109.306,192.831,1.894,44,27
