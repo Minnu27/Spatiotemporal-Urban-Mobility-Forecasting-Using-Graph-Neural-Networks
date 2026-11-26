@@ -5,7 +5,7 @@ type Report={ok:boolean;checks:SetupCheck[];checkedAt:string;note:string};
 export default function SetupChecks(){
  const [providers,setProviders]=useState(false),[busy,setBusy]=useState(false),[report,setReport]=useState<Report|null>(null),[error,setError]=useState('');
  async function run(){if(busy)return;setBusy(true);setError('');try{
-  const response=await fetch('/api/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({providers,consent:providers}),signal:AbortSignal.timeout(60000),cache:'no-store'});
+  const response=await fetch('/api/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({providers,consent:providers}),signal:AbortSignal.timeout(120000),cache:'no-store'});
   const data=await response.json();if(!response.ok)throw Error(data.error||'Connection checks are unavailable.');setReport(data);
  }catch(e){setError(e instanceof Error?e.message:'Connection checks are unavailable.');}finally{setBusy(false);}}
  return <details className="panel workspace-card setup-checks"><summary>Connection checks</summary><p>Check storage, database access and optional AI connections. Results contain status and repair instructions; credentials stay on the server.</p>

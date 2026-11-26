@@ -69,7 +69,7 @@ EMBEDDING_MODEL=@cf/qwen/qwen3-embedding-0.6b
 
 Replace YOUR_ACCOUNT_ID with the 32-character Cloudflare Account ID. Include the leading @ in both model IDs. The key/base are shared with embeddings unless EMBEDDING_API_KEY / EMBEDDING_BASE_URL are set separately. Full field-by-field instructions are in [CREDENTIALS.md](CREDENTIALS.md).
 
-The application requests 1,024-dimensional vectors and validates their shape and order. Cloudflare Qwen requests use low reasoning effort and a 4,096-token completion budget; other compatible chat providers retain the original request format. Empty, truncated or invalidly cited answers fall back to source excerpts.
+The application requests 1,024-dimensional vectors and validates their shape and order. Cloudflare Qwen3.8 evidence answers disable the separate thinking pass and allow 1,536 answer tokens. Generation can run for up to 60 seconds; the chat function allows 180 seconds for retrieval and saving as well. Other compatible chat providers retain their request format. Empty, truncated or invalidly cited answers fall back to source excerpts with a specific failure message. No uncited generated answer is displayed.
 
 Provider free allowances are limited; requests may be rejected after quota exhaustion. Keep provider tokens server-only and review processing/region settings before submitting personal documents. The provider connection test sends fixed non-personal text only; actual RAG sends retrieved excerpts and saved context as explained in the UI.
 
