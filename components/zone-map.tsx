@@ -14,7 +14,7 @@ export default function ZoneMap({selected,onSelect,impacts,borough}:{selected:nu
       return <path key={g.id} d={d} tabIndex={dim?-1:0} role="button" aria-label={`${z.name}, ${z.borough}${impact?`, disruption score ${impact.score}`:''}`} aria-pressed={selected===g.id}
         onClick={()=>onSelect(g.id)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect(g.id);}}}
         fill={selected===g.id?'#142f2b':dim?'#d9e3dc':impact&&impact.score>=60?'#d48750':impact&&impact.score>=25?'#d0ac63':'#98b9a4'}
-        stroke={selected===g.id?'#f6c969':'#f9fbf7'} strokeWidth={selected===g.id?2:0.6} className="zone-path"><title>{z.name} · {z.borough}</title></path>;
+        stroke={selected===g.id?'#f6c969':'#f9fbf7'} strokeWidth={selected===g.id?2:0.6} className="zone-path"><title>{`${z.name} · ${z.borough}`}</title></path>;
     })}
     <g className="map-labels"><text x="250" y="180" transform="rotate(-54 250 180)">MANHATTAN</text><text x="395" y="310">QUEENS</text><text x="260" y="395">BROOKLYN</text><text x="405" y="95">BRONX</text><text x="60" y="495">STATEN ISLAND</text></g>
     <g transform="translate(622 28)"><path d="M0 27 L8 0 L16 27 L8 21Z" fill="#243e32"/><text x="4" y="43" fontSize="11" fill="#243e32">N</text></g>
