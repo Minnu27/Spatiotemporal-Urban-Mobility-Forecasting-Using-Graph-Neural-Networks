@@ -12,6 +12,9 @@ test('the map renders valid title text without React server-render warnings', co
   assert.equal(errors.length,0);
   assert.ok(html.includes('<title>Midtown Center · Manhattan</title>'));
   assert.ok(!html.includes('Forecast taxi zone'));
+  assert.ok(html.includes('A smarter way'));
+  assert.ok(html.includes('Illustrative 3D city'));
+  assert.ok(!html.includes('1 hour ahead'));
 });
 test('private workspace initially renders a sign-in boundary without leaking data',context=>{
  const errors:unknown[][]=[];context.mock.method(console,'error',(...args:unknown[])=>errors.push(args));
